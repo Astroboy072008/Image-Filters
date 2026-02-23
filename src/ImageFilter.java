@@ -138,12 +138,12 @@ public class ImageFilter
         {
             for (int j = 0; j < height; j++)
             {
-                int[][] luminanceMatrix = fillLuminanceMatrix(i, j);
+                int[][] luminanceKernel = fillLuminanceKernel(i, j);
 
-                int lGX = elementWiseMultiplication(gX, luminanceMatrix);
-                int lGY = elementWiseMultiplication(gY, luminanceMatrix);
+                int lGX = intElementWiseMultiplication(gX, luminanceKernel);
+                int lGY = intElementWiseMultiplication(gY, luminanceKernel);
 
-                int tempG = (int)Math.sqrt(Math.pow(lGX, 2) + Math.pow(lGY, 2));
+                int tempG = (int)Math.sqrt(lGX * lGX + lGY * lGY);
 
                 if (tempG > 255)
                 {
@@ -197,7 +197,7 @@ public class ImageFilter
 
     }
 
-    private int[][] fillLuminanceMatrix(int x, int y)
+    private int[][] fillLuminanceKernel(int x, int y)
     {
         int[][] luminanceMatrix = new int[3][3];
 
@@ -256,16 +256,16 @@ public class ImageFilter
         return matrixAB;
     }
 
-    private int elementWiseMultiplication(int[][] matrixA, int[][] matrixB)
+    private int intElementWiseMultiplication(int[][] kernelA, int[][] kernelB)
     {
-        //matrices must be same size
+        //kernels must be same size
         int sum = 0;
 
-        for (int i = 0; i < matrixA.length; i++)
+        for (int i = 0; i < kernelA.length; i++)
         {
-            for (int j = 0; j < matrixA[i].length; j++)
+            for (int j = 0; j < kernelA[i].length; j++)
             {
-                sum += matrixA[i][j] * matrixB[i][j];
+                sum += kernelA[i][j] * kernelB[i][j];
             }
         }
 
@@ -484,5 +484,114 @@ public class ImageFilter
                 to[i][j].setARGB(a, r, g, b);
             }
         }
+    }
+
+    public void gaussianBlur(int size, double sigma)
+    {
+        double[][] kernel = new double[size][size];
+        double kernelTotal = 0;
+
+        int halfSize = size / 2;
+        for (int i = 0; i < kernel.length; i++)
+        {
+            for (int j = 0; j < kernel[i].length; j++)
+            {
+                int x = i - halfSize;
+                int y = j - halfSize;
+
+                double val = ((x * x + y * y) / (2.0 * sigma * sigma)) * -1;
+
+                val = Math.pow(Math.E, val);
+
+                val = (1 / (2 * Math.PI * sigma * sigma)) * val;
+
+                kernel[i][j] = val;
+                kernelTotal += val;
+            }
+        }
+
+        int[][] rValues = new int[width][height];
+        int[][] gValues = new int[width][height];
+        int[][] bValues = new int[width][height];
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                double[][][] rgbKernels = fillRGBKernel(i, j, size);
+
+                double r = doubleElementWiseMultiplication(kernel, rgbKernels[0]);
+                double g = doubleElementWiseMultiplication(kernel, rgbKernels[1]);
+                double b = doubleElementWiseMultiplication(kernel, rgbKernels[2]);
+
+                r /= kernelTotal;
+                g /= kernelTotal;
+                b /= kernelTotal;
+
+                rValues[i][j] = Math.max(0, Math.min(255, (int) r));
+                gValues[i][j] = Math.max(0, Math.min(255, (int) g));
+                bValues[i][j] = Math.max(0, Math.min(255, (int) b));
+            }
+        }
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                int a = imageContainer.pixels[i][j].getA();
+                int r = rValues[i][j];
+                int g = gValues[i][j];
+                int b = bValues[i][j];
+
+                imageContainer.pixels[i][j].setARGB(a, r, g, b);
+            }
+        }
+    }
+
+    private double[][][] fillRGBKernel(int x, int y, int size)
+    {
+        double[][][] rgbKernel = new double[3][size][size];
+
+        int halfSize = size / 2;
+        for (int i = -halfSize; i <= halfSize; i++)
+        {
+            for (int j = -halfSize; j <= halfSize; j++)
+            {
+                int targetX = x + i;
+                int targetY = y + j;
+
+                if(targetX >= 0 && targetX < width && targetY >= 0 && targetY < height)
+                {
+                    rgbKernel[0][i + halfSize][j + halfSize] = imageContainer.pixels[targetX][targetY].getR();
+                    rgbKernel[1][i + halfSize][j + halfSize] = imageContainer.pixels[targetX][targetY].getG();
+                    rgbKernel[2][i + halfSize][j + halfSize] = imageContainer.pixels[targetX][targetY].getB();
+
+                }
+                else
+                {
+                    rgbKernel[0][i + halfSize][j + halfSize] = 0;
+                    rgbKernel[1][i + halfSize][j + halfSize] = 0;
+                    rgbKernel[2][i + halfSize][j + halfSize] = 0;
+                }
+            }
+        }
+
+        return rgbKernel;
+    }
+
+    private double doubleElementWiseMultiplication(double[][] kernelA, double[][] kernelB)
+    {
+        //kernels must be same size
+        double sum = 0;
+
+        for (int i = 0; i < kernelA.length; i++)
+        {
+            for (int j = 0; j < kernelA[i].length; j++)
+            {
+                sum += kernelA[i][j] * kernelB[i][j];
+            }
+        }
+
+        return sum;
     }
 }

@@ -11,7 +11,7 @@ public class Main {
     public static void main(String[] args)
     {
 
-        File file = new File("C:\\Users\\ljwel\\oneDrive\\Desktop\\Image\\1000007487.jpg");
+        File file = new File("C:\\Users\\ljwel\\Desktop\\Image\\download.jpg");
         BufferedImage image = null;
 
         try {
@@ -25,7 +25,7 @@ public class Main {
 
         ImageFilter imageFilter = new ImageFilter(imageContainer);
 
-        int scale = 8;
+        int scale = 4;
 
 
 //        imageFilter.greyScale();
@@ -34,15 +34,15 @@ public class Main {
 //
 //        imageFilter.downScale(scale, scale);
 //        imageFilter.toText(true, 100);
+//
+//        imageFilter.toText(true, 1, false);
 
-        imageFilter.toText(true, 150, true);
-
-
+//        imageFilter.gaussianBlur(5, 5);
 
 //
 //        imageFilter.upScale(scale, scale);
 
-        imagePrint(imageContainer.image);
+//        imagePrint(imageContainer.image);
 
         display(imageContainer.image);
 
@@ -68,7 +68,7 @@ public class Main {
     public static void imagePrint(BufferedImage image)
     {
 
-        File output = new File("C:\\Users\\ljwel\\OneDrive\\Desktop\\Image\\Test_Output.png");
+        File output = new File("C:\\Users\\ljwel\\Desktop\\Image\\Test_Output.png");
 
         try {
             ImageIO.write(image, "png", output);
