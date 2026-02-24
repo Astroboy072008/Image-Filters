@@ -11,7 +11,7 @@ public class Main {
     public static void main(String[] args)
     {
 
-        File file = new File("C:\\Users\\ljwel\\Desktop\\Image\\1000005693.jpg");
+        File file = new File("C:\\Users\\ljwel\\Desktop\\Image\\1000005687.jpg");
         BufferedImage image = null;
 
         try {
@@ -23,7 +23,8 @@ public class Main {
 
         ImageContainer imageContainer = new ImageContainer(image);
 
-        ImageFilter imageFilter = new ImageFilter(imageContainer);
+        AsciiImages asciiImages = new AsciiImages(8);
+        ImageFilter imageFilter = new ImageFilter(imageContainer, asciiImages);
 
         int scale = 4;
 
@@ -35,9 +36,18 @@ public class Main {
 //        imageFilter.downScale(scale, scale);
 //        imageFilter.toText(true, 100);
 //
-        imageFilter.toText(true, 1, false);
+        imageFilter.toText(true, 250, false);
 
-//        imageFilter.gaussianBlur(5, 5);
+//        imageFilter.gaussianBlur(5, 10);
+//
+//        imageFilter.greyScale();
+
+//        imageFilter.differenceOfGaussians(8, .5, 2, 10, 0, 75);
+
+
+
+
+
 
 //
 //        imageFilter.upScale(scale, scale);
