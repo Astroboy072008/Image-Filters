@@ -10,8 +10,8 @@ import javax.imageio.ImageIO;
 public class Main {
     public static void main(String[] args)
     {
-
-        File file = new File("C:\\Users\\ljwel\\Desktop\\Image\\1000005687.jpg");
+        String name = "Screenshot 2026-02-24 225904.png";
+        File file = new File("C:\\Users\\ljwel\\Desktop\\Image\\" + name);
         BufferedImage image = null;
 
         try {
@@ -26,7 +26,7 @@ public class Main {
         AsciiImages asciiImages = new AsciiImages(8);
         ImageFilter imageFilter = new ImageFilter(imageContainer, asciiImages);
 
-        int scale = 4;
+        int scale = 8;
 
 
 //        imageFilter.greyScale();
@@ -34,16 +34,18 @@ public class Main {
 //        imageFilter.sobel(true, 1);
 //
 //        imageFilter.downScale(scale, scale);
-//        imageFilter.toText(true, 100);
+//        imageFilter.toText(true, 250);
 //
         imageFilter.toText(true, 250, false);
 
-//        imageFilter.gaussianBlur(5, 10);
+//        imageFilter.gaussianBlur(10, 10);
 //
 //        imageFilter.greyScale();
 
-//        imageFilter.differenceOfGaussians(8, .5, 2, 10, 0, 75);
+//        imageFilter.differenceOfGaussians(10, .5, 2, 10, 0, 128);
 
+//        imageFilter.differenceOfGaussians(8, .5, 2, 5, 0, 85);
+//        imageFilter.sobel(true, 250);
 
 
 
