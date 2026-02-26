@@ -319,8 +319,7 @@ public class ImageFilter
         }
 
         if(sobel) {
-            greyScale();
-            differenceOfGaussians(8, 1.5, 2, 5, 0, 85);
+            differenceOfGaussians(8, .5, 2, 5, 0, 85);
             sobel(true, sobelThreshold);
 
             char[] sobelChars = {'-', '|', '/', '\\'};
@@ -469,88 +468,95 @@ public class ImageFilter
     {
         double[][] kernel = makeGaussianKernel(size, sigma);
 
-        int[][][] rgb = makeGaussianBlurRGB(kernel, false);
+        double[][][] rgb = makeGaussianBlurRGB(kernel);
 
-        applyGaussianBlur(rgb[0], rgb[1], rgb[2]);
+        applyGaussianBlur(rgb);
     }
 
     public void gaussianBlur(double[][] kernel)
     {
-        int[][][] rgb = makeGaussianBlurRGB(kernel, false);
+        double[][][] rgb = makeGaussianBlurRGB(kernel);
 
-        applyGaussianBlur(rgb[0], rgb[1], rgb[2]);
+        applyGaussianBlur(rgb);
     }
 
-    private double[][] makeGaussianKernel(int size, double sigma)
-    {
-        double[][] kernel = new double[size][size];
+    private double[][] makeGaussianKernel(int size, double sigma) {
+        double[][] kernel = new double[2][size];
 
         int halfSize = size / 2;
-        for (int i = 0; i < kernel.length; i++)
-        {
-            for (int j = 0; j < kernel[i].length; j++)
-            {
-                int x = i - halfSize;
-                int y = j - halfSize;
+        for (int i = 0; i < size; i++) {
+            int x = i - halfSize;
+            int y = i - halfSize;
 
-                double val = ((x * x + y * y) / (2.0 * sigma * sigma)) * -1;
+            double valX = ((x * x) / (2.0 * sigma * sigma)) * -1;
+            double valY = ((y * y) / (2.0 * sigma * sigma)) * -1;
 
-                val = Math.pow(Math.E, val);
+            valX = Math.pow(Math.E, valX);
+            valY = Math.pow(Math.E, valY);
 
-                val = (1 / (2 * Math.PI * sigma * sigma)) * val;
+            valX = (1 / (2 * Math.PI * sigma * sigma)) * valX;
+            valY = (1 / (2 * Math.PI * sigma * sigma)) * valY;
 
-                kernel[i][j] = val;
-            }
+            kernel[0][i] = valX;
+            kernel[1][i] = valY;
         }
 
         return kernel;
     }
 
-    private int[][][] makeGaussianBlurRGB(double[][] kernel, Boolean skipTotalDivision)
+    private double[][][] makeGaussianBlurRGB(double[][] kernel)
     {
-        double kernelTotal = 0;
-
-        for (double[] doubles : kernel)
+        for (int i = 0; i <kernel.length; i++)
         {
-            for (double aDouble : doubles)
+            double sum = 0;
+            for (int j = 0; j < kernel[0].length; j++)
             {
-                kernelTotal += aDouble;
+                sum += kernel[i][j];
+            }
+            for (int j = 0; j < kernel[0].length; j++)
+            {
+                kernel[i][j] /= sum;
             }
         }
 
-        int[][] rValues = new int[width][height];
-        int[][] gValues = new int[width][height];
-        int[][] bValues = new int[width][height];
+        double[][][] rgbValues = new double[3][width][height];
 
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
             {
-                double[][][] rgbKernels = fillRGBKernel(i, j, kernel.length);
+                double[][] colorKernelX = getRGBColorKernel(i, j, kernel[0].length, null);
 
-                double r = doubleElementWiseMultiplication(kernel, rgbKernels[0]);
-                double g = doubleElementWiseMultiplication(kernel, rgbKernels[1]);
-                double b = doubleElementWiseMultiplication(kernel, rgbKernels[2]);
-
-                if(!skipTotalDivision)
+                for (int k = 0; k < 3; k++)
                 {
-                    r /= kernelTotal;
-                    g /= kernelTotal;
-                    b /= kernelTotal;
-                }
+                    double rgb = doubleElementWiseMultiplication(kernel[0], colorKernelX[k]);
 
-                rValues[i][j] = (int) r;
-                gValues[i][j] = (int) g;
-                bValues[i][j] = (int) b;
+                    rgbValues[k][i][j] = (int) rgb;
+                }
             }
         }
 
-        return new int[][][]{rValues, gValues, bValues};
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                double[][] colorKernelY = getRGBColorKernel(i, j, kernel[1].length, rgbValues);
+
+                for (int k = 0; k < 3; k++)
+                {
+                    double rgb = doubleElementWiseMultiplication(kernel[1], colorKernelY[k]);
+
+                    rgbValues[k][i][j] = (int) rgb;
+                }
+            }
+        }
+
+        return rgbValues;
     }
 
-    private double[][][] fillRGBKernel(int x, int y, int size)
+    private double[][] getRGBColorKernel(int x, int y, int size, double[][][] rgbValues)
     {
-        double[][][] rgbKernel = new double[3][size][size];
+        double[][] rbgColorKernel = new double[3][size];
 
         int halfSize = size / 2;
         int evenSize = 0;
@@ -561,56 +567,112 @@ public class ImageFilter
 
         for (int i = -halfSize; i <= halfSize - evenSize; i++)
         {
-            for (int j = -halfSize; j <= halfSize - evenSize; j++)
+            if(rgbValues == null)
             {
-                int targetX = x + i;
-                int targetY = y + j;
+                int targetX = Math.max(0, Math.min(x + i, width - 1));
 
-                if(targetX >= 0 && targetX < width && targetY >= 0 && targetY < height)
-                {
-                    rgbKernel[0][i + halfSize][j + halfSize] = imageContainer.pixels[targetX][targetY].getR();
-                    rgbKernel[1][i + halfSize][j + halfSize] = imageContainer.pixels[targetX][targetY].getG();
-                    rgbKernel[2][i + halfSize][j + halfSize] = imageContainer.pixels[targetX][targetY].getB();
+                rbgColorKernel[0][i + halfSize] = imageContainer.pixels[targetX][y].getR();
+                rbgColorKernel[1][i + halfSize] = imageContainer.pixels[targetX][y].getG();
+                rbgColorKernel[2][i + halfSize] = imageContainer.pixels[targetX][y].getB();
+            }
+            else
+            {
+                int targetY = Math.max(0, Math.min(y + i, height - 1));
 
-                }
-                else
-                {
-                    rgbKernel[0][i + halfSize][j + halfSize] = 0;
-                    rgbKernel[1][i + halfSize][j + halfSize] = 0;
-                    rgbKernel[2][i + halfSize][j + halfSize] = 0;
-                }
+                rbgColorKernel[0][i + halfSize] = rgbValues[0][x][targetY];
+                rbgColorKernel[1][i + halfSize] = rgbValues[1][x][targetY];
+                rbgColorKernel[2][i + halfSize] = rgbValues[2][x][targetY];
             }
         }
 
-        return rgbKernel;
+        return rbgColorKernel;
     }
 
-    private double doubleElementWiseMultiplication(double[][] kernelA, double[][] kernelB)
+    private double[][] makeGaussianBlurGreyscale(double[][] kernel)
+    {
+
+        double[][] rgbValues = new double[width][height];
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                double[] colorKernelX = getColorKernel(i, j, kernel[0].length, null);
+
+                double rgb = doubleElementWiseMultiplication(kernel[0], colorKernelX);
+
+                rgbValues[i][j] = rgb;
+            }
+        }
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                double[] colorKernelY = getColorKernel(i, j, kernel[1].length, rgbValues);
+
+                double rgb = doubleElementWiseMultiplication(kernel[1], colorKernelY);
+
+                rgbValues[i][j] = rgb;
+            }
+        }
+
+        return rgbValues;
+    }
+
+    private double[] getColorKernel(int x, int y, int size, double[][] colorValues)
+    {
+        double[] colorKernel = new double[size];
+
+        int halfSize = size / 2;
+        int evenSize = 0;
+        if(size % 2 == 0)
+        {
+            evenSize = 1;
+        }
+
+        for (int i = -halfSize; i <= halfSize - evenSize; i++)
+        {
+            if(colorValues == null)
+            {
+                int targetX = Math.max(0, Math.min(x + i, width - 1));
+
+                colorKernel[i + halfSize] = imageContainer.pixels[targetX][y].getR();
+            }
+            else
+            {
+                int targetY = Math.max(0, Math.min(y + i, height - 1));
+
+                colorKernel[i + halfSize] = colorValues[x][targetY];
+            }
+        }
+
+        return colorKernel;
+    }
+
+    private double doubleElementWiseMultiplication(double[] kernelA, double[] kernelB)
     {
         //kernels must be same size
         double sum = 0;
 
         for (int i = 0; i < kernelA.length; i++)
         {
-            for (int j = 0; j < kernelA[i].length; j++)
-            {
-                sum += kernelA[i][j] * kernelB[i][j];
-            }
+            sum += kernelA[i] * kernelB[i];
         }
 
         return sum;
     }
 
-    private void applyGaussianBlur(int[][] rValues, int[][] gValues, int[][] bValues)
+    private void applyGaussianBlur(double[][][] rgbValues)
     {
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
             {
                 int a = imageContainer.pixels[i][j].getA();
-                int r = rValues[i][j];
-                int g = gValues[i][j];
-                int b = bValues[i][j];
+                int r = (int) rgbValues[0][i][j];
+                int g = (int) rgbValues[1][i][j];
+                int b = (int) rgbValues[2][i][j];
 
                 imageContainer.pixels[i][j].setARGB(a, r, g, b);
             }
@@ -619,6 +681,8 @@ public class ImageFilter
 
     public void differenceOfGaussians(int size, double sigma, double scale, int strength, int offset, int threshold)
     {
+        greyScale();
+
         if(scale <= 1)
         {
             scale = 1.1;
@@ -627,25 +691,21 @@ public class ImageFilter
         double[][] kernelA = makeGaussianKernel(size, sigma);
         double[][] kernelB = makeGaussianKernel(size, sigma * scale);
 
-        int[][][] rgbValues = makeGaussianBlurRGB(doubleNestedArraySubtraction(kernelA, kernelB), true);
+        double[][] rgbValues = makeGaussianBlurGreyscale(doubleNestedArraySubtraction(kernelA, kernelB));
 
         for (int i = 0; i < width; i++)
         {
             for (int j = 0; j < height; j++)
             {
                 int a = imageContainer.pixels[i][j].getA();
-                int r = rgbValues[0][i][j] * strength + offset;
-                int g = rgbValues[1][i][j] * strength + offset;
-                int b = rgbValues[2][i][j] * strength + offset;
+                int rgb = (int) (rgbValues[i][j] * strength + offset);
 
-                if(r < threshold && g < threshold & b < threshold)
+                if(rgb < threshold)
                 {
-                    r = 0;
-                    g = 0;
-                    b = 0;
+                    rgb = 0;
                 }
 
-                imageContainer.pixels[i][j].setARGB(a, r, g, b);
+                imageContainer.pixels[i][j].setARGB(a, rgb, rgb, rgb);
             }
         }
     }
