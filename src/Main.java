@@ -1,4 +1,3 @@
-import java.util.*;
 import java.awt.*;
 import javax.swing.*;
 import java.io.*;
@@ -10,23 +9,13 @@ import javax.imageio.ImageIO;
 public class Main {
     public static void main(String[] args)
     {
-        String name = "Screenshot 2026-02-24 225904.png";
-        File file = new File("C:\\Users\\ljwel\\Desktop\\Image\\" + name);
-        BufferedImage image = null;
+        ImageViewer frame = new ImageViewer();
 
-        try {
-            image = ImageIO.read(file);
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        ImageContainer imageContainer = new ImageContainer(image);
-
-        AsciiImages asciiImages = new AsciiImages(8);
-        ImageFilter imageFilter = new ImageFilter(imageContainer, asciiImages);
-
-        int scale = 8;
+//
+//        AsciiImages asciiImages = new AsciiImages(8);
+//        ImageFilter imageFilter = new ImageFilter(imageContainer, asciiImages);
+//
+//        int scale = 4;
 
 
 //        imageFilter.greyScale();
@@ -36,7 +25,7 @@ public class Main {
 //        imageFilter.downScale(scale, scale);
 //        imageFilter.toText(true, 250);
 //
-        imageFilter.toText(true, 250, false);
+//        imageFilter.toText(true, 250, true);
 
 //        imageFilter.gaussianBlur(10, 10);
 //
@@ -54,38 +43,10 @@ public class Main {
 //
 //        imageFilter.upScale(scale, scale);
 
-        imagePrint(imageContainer.image);
-
-        display(imageContainer.image);
+//        imagePrint(imageContainer.image);
 
 
     }
 
-    public static void display(BufferedImage image)
-    {
-        System.out.println("displaying");
 
-        JFrame frame = new JFrame();
-        JLabel label = new JLabel();
-
-        frame.setSize(image.getWidth(), image.getHeight());
-        label.setIcon(new ImageIcon(image));
-        frame.getContentPane().add(label, BorderLayout.CENTER);
-
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setVisible(true);
-    }
-
-    public static void imagePrint(BufferedImage image)
-    {
-
-        File output = new File("C:\\Users\\ljwel\\Desktop\\Image\\Test_Output.png");
-
-        try {
-            ImageIO.write(image, "png", output);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
