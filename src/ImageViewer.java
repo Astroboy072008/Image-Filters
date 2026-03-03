@@ -36,7 +36,8 @@ public class ImageViewer extends JFrame
         toolkit = Toolkit.getDefaultToolkit();
         screenSize = toolkit.getScreenSize();
 
-        super.setSize((int) screenSize.getWidth(), (int) screenSize.getHeight());
+        super.setSize(400, 400);
+        super.setLocation((int)(screenSize.getWidth() / 2) - 200, (int)(screenSize.getHeight() / 2) - 200);
 
         menuBar = new JMenuBar();
         fileMenu = new JMenu("File");
@@ -120,17 +121,14 @@ public class ImageViewer extends JFrame
         }
     }
 
-    public BufferedImage getImage()
-    {
-        return image;
-    }
-
     public void displayImage(BufferedImage image)
     {
         imageLabel.setIcon(new ImageIcon(image));
 
-        int width = 0;
-        int height = 0;
+        int width;
+        int height;
+        int x = 0;
+        int y = 0;
 
         if(image.getWidth() * 1.5 >= screenSize.width - 50)
         {
@@ -139,17 +137,23 @@ public class ImageViewer extends JFrame
         else
         {
             width = (int)(image.getWidth() * 1.5);
+            x = (int)(screenSize.getWidth() / 2.0 - image.getWidth() * 1.5 / 2.0);
         }
 
-        if(image.getWidth() * 1.5 >= screenSize.height - 50)
+        if(image.getHeight() * 1.5 >= screenSize.height - 50)
         {
-            height = (int)(image.getWidth() * .9);
+            height = (int)(image.getHeight() * .9);
         }
         else
         {
-            height = (int)(image.getWidth() * 1.5);
+            height = (int)(image.getHeight() * 1.5);
+            y = (int)(screenSize.getHeight() / 2.0 - image.getHeight() * 1.5 / 2.0);
         }
 
+        if(x < 0) {x = 0;}
+        if(y < 0) {y = 0;}
+
+        super.setLocation(x, y);
         super.setSize(width, height);
         super.revalidate();
         super.repaint();
