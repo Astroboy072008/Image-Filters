@@ -24,6 +24,8 @@ public class ImageFilter
         this.asciiImages = asciiImages;
     }
 
+    public ImageContainer getImageContainer() {return imageContainer;}
+
     public void downScale(int widthA, int heightA)
     {
         width /= widthA;

@@ -1,14 +1,20 @@
 import java.awt.image.BufferedImage;
+import java.util.Stack;
 
 public class ImageContainer
 {
     public BufferedImage image;
     public Pixel[][] pixels;
 
+    private Stack<BufferedImage> imageHistory;
+
     ImageContainer(BufferedImage image)
     {
         this.image = image;
-        this.pixels = getPixelArray(this.image);
+        pixels = getPixelArray(this.image);
+
+        imageHistory = new Stack<>();
+        imageHistory.add(imageCopy());
     }
 
     private Pixel[][] getPixelArray(BufferedImage image)
@@ -56,5 +62,28 @@ public class ImageContainer
     public ImageContainer copy()
     {
         return new ImageContainer(imageCopy());
+    }
+
+    public void undo()
+    {
+        if(imageHistory.size() > 1)
+        {
+            image = imageHistory.pop();
+        }
+        else
+        {
+            pixels = getPixelArray(imageHistory.getFirst());
+            image = imageCopy();
+        }
+
+        pixels = getPixelArray(image);
+    }
+
+    public void apply(ImageContainer editedImage)
+    {
+        imageHistory.add(imageCopy());
+
+        image = editedImage.image;
+        pixels = editedImage.pixels;
     }
 }

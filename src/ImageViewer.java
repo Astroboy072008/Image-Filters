@@ -12,15 +12,15 @@ public class ImageViewer extends JFrame
     Toolkit toolkit;
     Dimension screenSize;
     JMenuBar menuBar;
-    JMenu fileMenu;
-    JMenuItem openItem, saveItem;
+    JMenu fileMenu, editMenu, basicFiltersMenu;
+    JMenuItem openItem, saveItem, undoButton, greyScale;
     JScrollPane scrollPane;
     JLabel imageLabel;
 
-    BufferedImage image;
-    String filePath, fileName;
+    String imageFilePath, imageFileName;
 
     ImageContainer imageContainer;
+    ImageFilter imageFilter;
 
     ImageViewer()
     {
@@ -28,7 +28,11 @@ public class ImageViewer extends JFrame
 
         setUp();
 
-        setUpMenuButtons();
+        setUpFileMenuButtons();
+
+        setUpEditMenuButtons();
+
+        setUpBasicFiltersMenuButtons();
     }
 
     private void setUp()
@@ -39,7 +43,7 @@ public class ImageViewer extends JFrame
         super.setSize(400, 400);
         super.setLocation((int)(screenSize.getWidth() / 2) - 200, (int)(screenSize.getHeight() / 2) - 200);
 
-        menuBar = new JMenuBar();
+        //File Menu
         fileMenu = new JMenu("File");
         openItem = new JMenuItem("Open");
         saveItem = new JMenuItem("Save");
@@ -48,7 +52,24 @@ public class ImageViewer extends JFrame
         fileMenu.addSeparator();
         fileMenu.add(saveItem);
 
+        //Edit Menu
+        editMenu = new JMenu("Edit");
+        undoButton = new JMenuItem("Undo");
+
+        editMenu.add(undoButton);
+
+        //Basic Filters Menu
+        basicFiltersMenu = new JMenu("Basic Filters");
+        greyScale = new JMenuItem("Greyscale");
+
+        basicFiltersMenu.add(greyScale);
+
+        //MenuBar Setup
+        menuBar = new JMenuBar();
+
         menuBar.add(fileMenu);
+        menuBar.add(editMenu);
+        menuBar.add(basicFiltersMenu);
         super.setJMenuBar(menuBar);
 
         imageLabel = new JLabel();
@@ -61,18 +82,21 @@ public class ImageViewer extends JFrame
         super.setVisible(true);
     }
 
-    private void setUpMenuButtons()
+    private void setUpFileMenuButtons()
     {
         openItem.addActionListener(new ActionListener()
         {
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                openFileAction();
+                BufferedImage image = openFileAction();
 
-                imageContainer = new ImageContainer(image);
+                if(image != null)
+                {
+                    imageContainer = new ImageContainer(image);
 
-                displayImage(imageContainer.image);
+                    displayImage(imageContainer.image, true);
+                }
             }
         });
 
@@ -81,16 +105,53 @@ public class ImageViewer extends JFrame
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                saveItemAction(filePath, fileName, image);
+                saveItemAction(imageFilePath, imageFileName, imageContainer.image);
             }
         });
     }
 
-    private void openFileAction()
+    private void setUpEditMenuButtons()
+    {
+        undoButton.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if(imageContainer != null)
+                {
+                    imageContainer.undo();
+
+                    displayImage(imageContainer.image, true);
+                }
+            }
+        });
+    }
+
+    private void setUpBasicFiltersMenuButtons()
+    {
+        greyScale.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if(imageContainer != null)
+                {
+                    resetImageFilter();
+
+                    imageFilter.greyScale();
+
+                    applyImageFilters(false);
+                }
+            }
+        });
+    }
+
+    private BufferedImage openFileAction()
     {
         JFileChooser fileChooser = new JFileChooser();
-
         int option = fileChooser.showOpenDialog(this);
+
+        BufferedImage image = null;
 
         if(option == JFileChooser.APPROVE_OPTION)
         {
@@ -100,14 +161,17 @@ public class ImageViewer extends JFrame
             {
                 image = ImageIO.read(fileOption);
 
-                fileName = fileOption.getName().substring(0, fileOption.getName().indexOf('.'));
+                imageFileName = fileOption.getName().substring(0, fileOption.getName().indexOf('.'));
 
-                filePath = fileOption.getPath().substring(0, fileOption.getPath().indexOf(fileName));
+                imageFilePath = fileOption.getPath().substring(0, fileOption.getPath().indexOf(imageFileName));
             }
-            catch (IOException e) {
-                throw new RuntimeException(e);
+            catch (IOException e)
+            {
+                return null;
             }
         }
+
+        return image;
     }
 
     private void saveItemAction(String filePath, String name, BufferedImage image)
@@ -121,7 +185,19 @@ public class ImageViewer extends JFrame
         }
     }
 
-    public void displayImage(BufferedImage image)
+    private void resetImageFilter()
+    {
+        imageFilter = new ImageFilter(imageContainer.copy());
+    }
+
+    private void applyImageFilters(boolean recenter)
+    {
+        imageContainer.apply(imageFilter.getImageContainer());
+
+        displayImage(imageContainer.image, recenter);
+    }
+
+    public void displayImage(BufferedImage image, boolean recenter)
     {
         imageLabel.setIcon(new ImageIcon(image));
 
@@ -153,7 +229,7 @@ public class ImageViewer extends JFrame
         if(x < 0) {x = 0;}
         if(y < 0) {y = 0;}
 
-        super.setLocation(x, y);
+        if(recenter) {super.setLocation(x, y);}
         super.setSize(width, height);
         super.revalidate();
         super.repaint();
