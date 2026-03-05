@@ -138,9 +138,9 @@ public class ImageViewer extends JFrame
                 {
                     resetImageFilter();
 
-                    imageFilter.greyScale();
+                    imageFilter.downScale(2, 2);
 
-                    applyImageFilters(false);
+                    applyImageFilters(true);
                 }
             }
         });
