@@ -1,3 +1,5 @@
+import java.awt.image.BufferedImage;
+
 public class ImageFilter
 {
     ImageContainer imageContainer;
@@ -60,399 +62,351 @@ public class ImageFilter
         }
 
         return imageContainer.pixels.getIntARGB(a / total, r / total, g / total, b/ total);
-    }}
+    }
 
-//    public void upScale(int widthA, int heightA)
-//    {
-//        width *= widthA;
-//        height *= heightA;
-//
-//        imageContainer.image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-//        Pixels[][] tempPixels = new Pixels[width][height];
-//
-//        for (int i = 0; i < imageContainer.pixels.length; i++)
-//        {
-//            for (int j = 0; j < imageContainer.pixels[i].length; j++)
-//            {
-//                extend(tempPixels, i, j, widthA, heightA);
-//            }
-//        }
-//
-//        imageContainer.pixels = tempPixels;
-//    }
-//
-//    private void extend(Pixels[][] tempPixels, int x, int y, int widthA, int heightA)
-//    {
-//        int a = imageContainer.pixels[x][y].getA();
-//        int r = imageContainer.pixels[x][y].getR();
-//        int g = imageContainer.pixels[x][y].getG();
-//        int b = imageContainer.pixels[x][y].getB();
-//
-//        for (int i = 0; i < widthA; i++)
-//        {
-//            for (int j = 0; j < heightA; j++)
-//            {
-//                int x1 = x * widthA + i;
-//                int y1 = y * heightA + j;
-//
-//                tempPixels[x1][y1] = new Pixels(imageContainer.image, x1, y1);
-//                tempPixels[x1][y1].setARGB(a, r, g, b);
-//            }
-//        }
-//    }
-//
-//    public void greyScale()
-//    {
-//        for (int i = 0; i < width; i++)
-//        {
-//            for (int j = 0; j < height; j++)
-//            {
-//                int a = imageContainer.pixels[i][j].getA();
-//                int r = imageContainer.pixels[i][j].getR();
-//                int g = imageContainer.pixels[i][j].getG();
-//                int b = imageContainer.pixels[i][j].getB();
-//
-//                int avg = (int) (0.299 * r + 0.587 * g + 0.114 * b);
-//
-//                imageContainer.pixels[i][j].setARGB(a, avg, avg, avg);
-//            }
-//
-//        }
-//    }
-//
-//    public void sobel(Boolean color, int threshold)
-//    {
-//        int[][] g = new int[width][height];
-//        double[][] gAngle = new double[width][height];
-//
-//        int[][] gX = {{-1, 0, 1},
-//                      {-2, 0, 2},
-//                      {-1, 0, 1}};
-//
-//        int[][] gY = {{-1, -2, -1},
-//                      {0, 0, 0},
-//                      {1, 2, 1}};
-//
-//        for (int i = 0; i < width; i++)
-//        {
-//            for (int j = 0; j < height; j++)
-//            {
-//                int[][] luminanceKernel = fillLuminanceKernel(i, j);
-//
-//                int lGX = intElementWiseMultiplication(gX, luminanceKernel);
-//                int lGY = intElementWiseMultiplication(gY, luminanceKernel);
-//
-//                int tempG = (int)Math.sqrt(lGX * lGX + lGY * lGY);
-//
-//                if (tempG > 255)
-//                {
-//                    tempG = 255;
-//                }
-//
-//                g[i][j] = tempG;
-//                gAngle[i][j] = Math.toDegrees(Math.atan2(lGY, lGX)) + 180;
-//            }
-//        }
-//
-//
-//        for (int i = 0; i < width; i++)
-//        {
-//            for (int j = 0; j < height; j++)
-//            {
-//                int rgb = g[i][j];
-//                double angle = gAngle[i][j];
-//
-//                if(color)
-//                {
-//                    if (rgb >= threshold && ((i > 0 && i < width - 1) && (j > 0 && j < height - 1)))
-//                    {
-//                        if ((angle >= 0 && angle < 6) || (angle >= 175 && angle < 186) || angle >= 355)
-//                        {
-//                            imageContainer.pixels[i][j].setARGB(255, 255, 0, 0);
-//                        }
-//                        else if ((angle >= 85 && angle < 96) || (angle >= 265 && angle < 276))
-//                        {
-//                            imageContainer.pixels[i][j].setARGB(255, 0, 255, 0);
-//                        }
-//                        else if ((angle >= 5 && angle < 85) || (angle >= 185 && angle < 265))
-//                        {
-//                            imageContainer.pixels[i][j].setARGB(255, 0, 0, 255);
-//                        }
-//                        else {
-//                            imageContainer.pixels[i][j].setARGB(255, 255, 0, 255);
-//                        }
-//                    }
-//                    else
-//                    {
-//                        imageContainer.pixels[i][j].setARGB(0, rgb, rgb, rgb);
-//                    }
-//                }
-//                else
-//                {
-//                    imageContainer.pixels[i][j].setARGB(255, rgb, rgb, rgb);
-//                }
-//            }
-//        }
-//
-//    }
-//
-//    private int[][] fillLuminanceKernel(int x, int y)
-//    {
-//        int[][] luminanceMatrix = new int[3][3];
-//
-//        for (int i = -1; i < 2; i++)
-//        {
-//            for (int j = -1; j < 2; j++)
-//            {
-//                int targetX = x + i;
-//                int targetY = y + j;
-//
-//                if(targetX >= 0 && targetX < width && targetY >= 0 && targetY < height)
-//                {
-//                    luminanceMatrix[i + 1][j + 1] = (int)imageContainer.pixels[targetX][targetY].getLuminance();
-//                }
-//                else
-//                {
-//                    luminanceMatrix[i + 1][j + 1] = 0;
-//                }
-//            }
-//        }
-//
-//        return luminanceMatrix;
-//    }
-//
-//    private int[][] matrixMultiplication(int[][] matrixA, int[][] matrixB)
-//    {
-//        int[][] matrixAB = new int[matrixB.length][matrixA[0].length];
-//
-//        for (int i = 0; i < matrixAB.length; i++)
-//        {
-//            for (int j = 0; j < matrixAB[0].length; j++)
-//            {
-//                int[] a = new int[matrixA.length];
-//                int[] b = new int[matrixB[0].length];
-//
-//                for (int k = 0; k < matrixA.length; k++) {
-//                    a[k] = matrixA[i][k];
-//                }
-//
-//                for (int k = 0; k < matrixB[0].length; k++) {
-//                    b[k] = matrixB[k][j];
-//                }
-//
-//                int sum = 0;
-//
-//                for (int k = 0; k < a.length; k++)
-//                {
-//                    sum += a[k] * b[k];
-//                }
-//
-//                matrixAB[i][j] = sum;
-//            }
-//        }
-//
-//
-//        return matrixAB;
-//    }
-//
-//    private int intElementWiseMultiplication(int[][] kernelA, int[][] kernelB)
-//    {
-//        //kernels must be same size
-//        int sum = 0;
-//
-//        for (int i = 0; i < kernelA.length; i++)
-//        {
-//            for (int j = 0; j < kernelA[i].length; j++)
-//            {
-//                sum += kernelA[i][j] * kernelB[i][j];
-//            }
-//        }
-//
-//        return sum;
-//    }
-//
-//
-//    public void toText(Boolean sobel, int sobelThreshold)
-//    {
-//        printNestedCharArray(makeCharImage(sobel, sobelThreshold));
-//    }
-//
-//    public void toText(Boolean sobel, int sobelThreshold, Boolean monochrome)
-//    {
-//        Pixels[][] ogPixels = new Pixels[width][height];
-//
-//        copyPixelArray(ogPixels, imageContainer.pixels);
-//
-//        char[][] charImage = makeCharImage(sobel, sobelThreshold);
-//
-//        imageContainer.pixels = ogPixels;
-//        asciiToImage(monochrome, charImage);
-//    }
-//
-//    private char[][] makeCharImage(Boolean sobel, int sobelThreshold)
-//    {
-//        char[] chars = {' ', '.', ':', 'c', 'o', 'P', 'O', '?', '@', '█'};
-//        char[][] charImage = new char[height][width];
-//
-//        for (int i = 0; i < height; i++)
-//        {
-//            for (int j = 0; j < width; j++)
-//            {
-//                double luminance = imageContainer.pixels[j][i].getLuminance();
-//
-//                luminance = (luminance / 255) * (chars.length - 1);
-//                luminance = Math.round(luminance);
-//
-//                charImage[i][j] = chars[(int)luminance];
-//            }
-//        }
-//
-//        if(sobel) {
+    public void upScale(int widthA, int heightA)
+    {
+        width *= widthA;
+        height *= heightA;
+
+        int[] tempPixels = new int[width * height];
+
+        for (int x = 0; x < imageContainer.pixels.width; x++)
+        {
+            for (int y = 0; y < imageContainer.pixels.height; y++)
+            {
+                extend(tempPixels, x, y, widthA, heightA);
+            }
+        }
+
+        imageContainer.pixels.setARGB(tempPixels, width, height);
+        imageContainer.image = imageContainer.pixels.getImage();
+    }
+
+    private void extend(int[] tempPixels, int x, int y, int widthA, int heightA)
+    {
+        int a = imageContainer.pixels.getA(x, y);
+        int r = imageContainer.pixels.getR(x, y);
+        int g = imageContainer.pixels.getG(x, y);
+        int b = imageContainer.pixels.getB(x, y);
+
+        for (int i = 0; i < widthA; i++)
+        {
+            for (int j = 0; j < heightA; j++)
+            {
+                int x1 = x * widthA + i;
+                int y1 = y * heightA + j;
+
+                tempPixels[width * y1 + x1] = imageContainer.pixels.getIntARGB(a, r, g, b);
+            }
+        }
+    }
+
+    public void greyScale()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int a = imageContainer.pixels.getA(x, y);
+                int r = imageContainer.pixels.getR(x, y);
+                int g = imageContainer.pixels.getG(x, y);
+                int b = imageContainer.pixels.getB(x, y);
+
+                int avg = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+
+                imageContainer.pixels.setARGB(x, y, a, avg, avg, avg);
+            }
+        }
+
+        imageContainer.pixels.syncImage();
+    }
+
+    public void sobel(Boolean color, int threshold)
+    {
+        int[][] g = new int[width][height];
+        double[][] gAngle = new double[width][height];
+
+        int[][] gX = {{-1, 0, 1},
+                      {-2, 0, 2},
+                      {-1, 0, 1}};
+
+        int[][] gY = {{-1, -2, -1},
+                      {0, 0, 0},
+                      {1, 2, 1}};
+
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                int[][] luminanceKernel = fillLuminanceKernel(i, j);
+
+                int lGX = intElementWiseMultiplication(gX, luminanceKernel);
+                int lGY = intElementWiseMultiplication(gY, luminanceKernel);
+
+                int tempG = (int)Math.sqrt(lGX * lGX + lGY * lGY);
+
+                if (tempG > 255)
+                {
+                    tempG = 255;
+                }
+
+                g[i][j] = tempG;
+                gAngle[i][j] = Math.toDegrees(Math.atan2(lGY, lGX)) + 180;
+            }
+        }
+
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int rgb = g[x][y];
+                double angle = gAngle[x][y];
+
+                if(color)
+                {
+                    if (rgb >= threshold && ((x > 0 && x < width - 1) && (y > 0 && y < height - 1)))
+                    {
+                        if ((angle >= 0 && angle < 6) || (angle >= 175 && angle < 186) || angle >= 355)
+                        {
+                            imageContainer.pixels.setARGB(x, y, 255, 255, 0, 0);
+                        }
+                        else if ((angle >= 85 && angle < 96) || (angle >= 265 && angle < 276))
+                        {
+                            imageContainer.pixels.setARGB(x, y,255, 0, 255, 0);
+                        }
+                        else if ((angle >= 5 && angle < 85) || (angle >= 185 && angle < 265))
+                        {
+                            imageContainer.pixels.setARGB(x, y,255, 0, 0, 255);
+                        }
+                        else {
+                            imageContainer.pixels.setARGB(x, y,255, 255, 0, 255);
+                        }
+                    }
+                    else
+                    {
+                        imageContainer.pixels.setARGB(x, y,0, rgb, rgb, rgb);
+                    }
+                }
+                else
+                {
+                    imageContainer.pixels.setARGB(x, y,255, rgb, rgb, rgb);
+                }
+            }
+        }
+
+        imageContainer.pixels.syncImage();
+    }
+
+    private int[][] fillLuminanceKernel(int x, int y)
+    {
+        int[][] luminanceKernel = new int[3][3];
+
+        for (int i = -1; i < 2; i++)
+        {
+            for (int j = -1; j < 2; j++)
+            {
+                int targetX = x + i;
+                int targetY = y + j;
+
+                if(targetX >= 0 && targetX < width && targetY >= 0 && targetY < height)
+                {
+                    luminanceKernel[i + 1][j + 1] = (int)imageContainer.pixels.getLuminance(targetX, targetY);
+                }
+                else
+                {
+                    luminanceKernel[i + 1][j + 1] = 0;
+                }
+            }
+        }
+
+        return luminanceKernel;
+    }
+
+
+    private int intElementWiseMultiplication(int[][] kernelA, int[][] kernelB)
+    {
+        //kernels must be same size
+        int sum = 0;
+
+        for (int i = 0; i < kernelA.length; i++)
+        {
+            for (int j = 0; j < kernelA[i].length; j++)
+            {
+                sum += kernelA[i][j] * kernelB[i][j];
+            }
+        }
+
+        return sum;
+    }
+
+
+    public void toText(Boolean sobel, int sobelThreshold)
+    {
+        printNestedCharArray(makeCharImage(sobel, sobelThreshold));
+    }
+
+    public void toText(Boolean sobel, int sobelThreshold, Boolean monochrome)
+    {
+        downScale(8, 8);
+
+        BufferedImage ogImage = imageContainer.pixels.getImageCopy();
+
+        char[][] charImage = makeCharImage(sobel, sobelThreshold);
+
+        imageContainer.pixels.setImage(ogImage);
+        asciiToImage(monochrome, charImage);
+    }
+
+    private char[][] makeCharImage(Boolean sobel, int sobelThreshold)
+    {
+        char[] chars = {' ', '.', ':', 'c', 'o', 'P', 'O', '?', '@', '█'};
+        char[][] charImage = new char[height][width];
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                double luminance = imageContainer.pixels.getLuminance(x, y);
+
+                luminance = (luminance / 255) * (chars.length - 1);
+                luminance = Math.round(luminance);
+
+                charImage[y][x] = chars[(int)luminance];
+            }
+        }
+
+        if(sobel) {
 //            differenceOfGaussians(8, .5, 2, 5, 0, 85);
-//            sobel(true, sobelThreshold);
-//
-//            char[] sobelChars = {'-', '|', '/', '\\'};
-//
-//            for (int i = 0; i < height; i++)
-//            {
-//                for (int j = 0; j < width; j++)
-//                {
-//                    int a = imageContainer.pixels[j][i].getA();
-//                    int r = imageContainer.pixels[j][i].getR();
-//                    int g = imageContainer.pixels[j][i].getG();
-//                    int b = imageContainer.pixels[j][i].getB();
-//
-//                    if( a != 0)
-//                    {
-//                        int index = getSobelIndex(r, g, b);
-//
-//                        charImage[i][j] = sobelChars[index];
-//                    }
-//                }
-//            }
-//        }
-//
-//        return charImage;
-//    }
-//
-//    private static int getSobelIndex(int r, int g, int b)
-//    {
-//        int index = -1;
-//
-//        if(r == 255)
-//        {
-//            index = 0;
-//        }
-//
-//        if(g == 255)
-//        {
-//            index = 1;
-//        }
-//
-//        if(b == 255)
-//        {
-//            index = 2;
-//        }
-//
-//        if(r == 255 && b == 255)
-//        {
-//            index = 3;
-//        }
-//        return index;
-//    }
-//
-//    private void printNestedCharArray(char[][] array)
-//    {
-//
-//        for (int i = 0; i < array.length; i++)
-//        {
-//            String line = "";
-//
-//            for (int j = 0; j < array[i].length; j++)
-//            {
-//                line += array[i][j];
-//            }
-//
-//            System.out.println(line);
-//        }
-//    }
-//
-//    private void asciiToImage(Boolean monochrome, char[][] array)
-//    {
-//        if(asciiImages == null)
-//        {
-//            asciiImages = new AsciiImages(8);
-//        }
-//
-//        width *= 8;
-//        height *= 8;
-//
-//        imageContainer.image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-//        Pixels[][] pixels = new Pixels[width][height];
-//
-//        for (int i = 0; i < height / 8; i++)
-//        {
-//            for (int j = 0; j < width / 8; j++)
-//            {
-//                ImageContainer ascii = asciiImages.getAscii(array[i][j]);
-//
-//                int a = imageContainer.pixels[j][i].getA();
-//                int r = imageContainer.pixels[j][i].getR();
-//                int g = imageContainer.pixels[j][i].getG();
-//                int b = imageContainer.pixels[j][i].getB();
-//
-//                if(monochrome)
-//                {
-//                    a = 255;
-//                    r = 255;
-//                    g = 255;
-//                    b = 255;
-//                }
-//
-//                copyImage(ascii.pixels, pixels, j * 8, i * 8, a, r, g, b);
-//            }
-//        }
-//
-//        imageContainer.pixels = pixels;
-//    }
-//
-//    private void copyImage(Pixels[][] subject, Pixels[][] canvas, int x, int y, int a, int r, int g, int b)
-//    {
-//        for (int i = 0; i < subject.length; i++)
-//        {
-//            for (int j = 0; j < subject[i].length; j++)
-//            {
-//                canvas[x + i][y + j] = new Pixels(imageContainer.image, x + i, y + j);
-//                canvas[x + i][y + j].setARGB(255, 0, 0, 0);
-//
-//                if(subject[i][j].getR() == 255)
-//                {
-//                    canvas[x + i][y + j].setARGB(a, r, g, b);
-//                }
-//            }
-//        }
-//    }
-//
-//    private void copyPixelArray(Pixels[][] to, Pixels[][] from)
-//    {
-//        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-//
-//        for (int i = 0; i < to.length; i++)
-//        {
-//            for (int j = 0; j < to[i].length; j++)
-//            {
-//                to[i][j] = new Pixels(image, i, j);
-//
-//                int a = from[i][j].getA();
-//                int r = from[i][j].getR();
-//                int g = from[i][j].getG();
-//                int b = from[i][j].getB();
-//
-//                to[i][j].setARGB(a, r, g, b);
-//            }
-//        }
-//    }
-//
+            sobel(true, sobelThreshold);
+
+            char[] sobelChars = {'-', '|', '/', '\\'};
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int a = imageContainer.pixels.getA(x, y);
+                    int r = imageContainer.pixels.getR(x, y);
+                    int g = imageContainer.pixels.getG(x, y);
+                    int b = imageContainer.pixels.getB(x, y);
+
+                    if( a != 0)
+                    {
+                        int index = getSobelIndex(r, g, b);
+
+                        charImage[y][x] = sobelChars[index];
+                    }
+                }
+            }
+        }
+
+        return charImage;
+    }
+
+    private static int getSobelIndex(int r, int g, int b)
+    {
+        int index = -1;
+
+        if(r == 255)
+        {
+            index = 0;
+        }
+
+        if(g == 255)
+        {
+            index = 1;
+        }
+
+        if(b == 255)
+        {
+            index = 2;
+        }
+
+        if(r == 255 && b == 255)
+        {
+            index = 3;
+        }
+        return index;
+    }
+
+    private void printNestedCharArray(char[][] array)
+    {
+
+        for (int i = 0; i < array.length; i++)
+        {
+            String line = "";
+
+            for (int j = 0; j < array[i].length; j++)
+            {
+                line += array[i][j];
+            }
+
+            System.out.println(line);
+        }
+    }
+
+    private void asciiToImage(Boolean monochrome, char[][] array)
+    {
+        if(asciiImages == null)
+        {
+            asciiImages = new AsciiImages(8);
+        }
+
+        width *= 8;
+        height *= 8;
+
+        int[] tempPixels = new int[width * height];
+
+        for (int y = 0; y < height / 8; y++)
+        {
+            for (int x = 0; x < width / 8; x++)
+            {
+                ImageContainer ascii = asciiImages.getAscii(array[y][x]);
+
+                int a = imageContainer.pixels.getA(x, y);
+                int r = imageContainer.pixels.getR(x, y);
+                int g = imageContainer.pixels.getG(x, y);
+                int b = imageContainer.pixels.getB(x, y);
+
+                if(monochrome)
+                {
+                    a = 255;
+                    r = 255;
+                    g = 255;
+                    b = 255;
+                }
+
+                copyImage(ascii.pixels, tempPixels, x * 8, y * 8, a, r, g, b);
+            }
+        }
+
+        imageContainer.pixels.setARGB(tempPixels, width, height);
+        imageContainer.pixels.syncImage();
+        imageContainer.image = imageContainer.pixels.getImage();
+    }
+
+    private void copyImage(Pixels subject, int[] canvas, int x, int y, int a, int r, int g, int b)
+    {
+        for (int i = 0; i < subject.width; i++)
+        {
+            for (int j = 0; j < subject.height; j++)
+            {
+                int index = width * (y + j) + (x + i);
+
+                if(subject.getR(i, j) == 255)
+                {
+                    canvas[index] = imageContainer.pixels.getIntARGB(a, r, g, b);
+                }
+                else
+                {
+                    canvas[index] = imageContainer.pixels.getIntARGB(255, 0, 0, 0);
+                }
+            }
+        }
+    }
+
 //    public void gaussianBlur(int size, double sigma)
 //    {
 //        double[][] kernel = makeGaussianKernel(size, sigma);
@@ -715,4 +669,4 @@ public class ImageFilter
 //
 //        return kernelC;
 //    }
-//}
+}

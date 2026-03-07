@@ -138,7 +138,7 @@ public class ImageViewer extends JFrame
                 {
                     resetImageFilter();
 
-                    imageFilter.downScale(2, 2);
+                    imageFilter.toText(true, 200, false);
 
                     applyImageFilters(true);
                 }
