@@ -138,7 +138,7 @@ public class ImageViewer extends JFrame
                 {
                     resetImageFilter();
 
-                    imageFilter.toText(true, 200, false);
+                    imageFilter.gaussianBlur(1.6);
 
                     applyImageFilters(true);
                 }
