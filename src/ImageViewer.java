@@ -19,8 +19,7 @@ public class ImageViewer extends JFrame
 
     String imageFilePath, imageFileName;
 
-    ImageContainer imageContainer;
-    ImageFilter imageFilter;
+    ImageHandler imageHandler;
 
     ImageViewer()
     {
@@ -93,9 +92,9 @@ public class ImageViewer extends JFrame
 
                 if(image != null)
                 {
-                    imageContainer = new ImageContainer(image);
+                    imageHandler = new ImageHandler(image);
 
-                    displayImage(imageContainer.image, true);
+                    displayImage(imageHandler.image, true);
                 }
             }
         });
@@ -105,7 +104,7 @@ public class ImageViewer extends JFrame
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                saveItemAction(imageFilePath, imageFileName, imageContainer.image);
+                saveItemAction(imageFilePath, imageFileName, imageHandler.image);
             }
         });
     }
@@ -117,11 +116,11 @@ public class ImageViewer extends JFrame
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                if(imageContainer != null)
+                if(imageHandler != null)
                 {
-                    imageContainer.undo();
+                    imageHandler.undo();
 
-                    displayImage(imageContainer.image, true);
+                    displayImage(imageHandler.image, true);
                 }
             }
         });
@@ -134,11 +133,9 @@ public class ImageViewer extends JFrame
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                if(imageContainer != null)
+                if(imageHandler != null)
                 {
-                    resetImageFilter();
-
-                    imageFilter.gaussianBlur(1.6);
+                    imageHandler.sobel(true, 200);
 
                     applyImageFilters(true);
                 }
@@ -185,16 +182,11 @@ public class ImageViewer extends JFrame
         }
     }
 
-    private void resetImageFilter()
-    {
-        imageFilter = new ImageFilter(imageContainer.copy());
-    }
-
     private void applyImageFilters(boolean recenter)
     {
-        imageContainer.apply(imageFilter.getImageContainer());
+        imageHandler.apply();
 
-        displayImage(imageContainer.image, recenter);
+        displayImage(imageHandler.image, recenter);
     }
 
     public void displayImage(BufferedImage image, boolean recenter)

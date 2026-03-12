@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 public class AsciiImages
 {
-    HashMap<Character, ImageContainer> ascii;
+    HashMap<Character, ImageHandler> ascii;
     int size;
 
     AsciiImages(int size)
@@ -54,11 +54,11 @@ public class AsciiImages
                 image = new BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB);
             }
 
-            ascii.put(chars.charAt(i), new ImageContainer(image));
+            ascii.put(chars.charAt(i), new ImageHandler(image));
         }
     }
 
-    public ImageContainer getAscii(char key)
+    public ImageHandler getAscii(char key)
     {
         return ascii.get(key);
     }

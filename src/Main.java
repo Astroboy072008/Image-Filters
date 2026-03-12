@@ -13,37 +13,37 @@ public class Main {
 
 //
 //        AsciiImages asciiImages = new AsciiImages(8);
-//        ImageFilter imageFilter = new ImageFilter(imageContainer, asciiImages);
+//        ImageEditor imageEditor = new ImageEditor(imageHandler, asciiImages);
 //
 //        int scale = 4;
 
 
-//        imageFilter.greyScale();
+//        imageEditor.greyScale();
 //
-//        imageFilter.sobel(true, 1);
+//        imageEditor.sobel(true, 1);
 //
-//        imageFilter.downScale(scale, scale);
-//        imageFilter.toText(true, 250);
+//        imageEditor.downScale(scale, scale);
+//        imageEditor.toText(true, 250);
 //
-//        imageFilter.toText(true, 250, true);
+//        imageEditor.toText(true, 250, true);
 
-//        imageFilter.gaussianBlur(10, 10);
+//        imageEditor.gaussianBlur(10, 10);
 //
-//        imageFilter.greyScale();
+//        imageEditor.greyScale();
 
-//        imageFilter.differenceOfGaussians(10, .5, 2, 10, 0, 128);
+//        imageEditor.differenceOfGaussians(10, .5, 2, 10, 0, 128);
 
-//        imageFilter.differenceOfGaussians(8, .5, 2, 5, 0, 85);
-//        imageFilter.sobel(true, 250);
+//        imageEditor.differenceOfGaussians(8, .5, 2, 5, 0, 85);
+//        imageEditor.sobel(true, 250);
 
 
 
 
 
 //
-//        imageFilter.upScale(scale, scale);
+//        imageEditor.upScale(scale, scale);
 
-//        imagePrint(imageContainer.image);
+//        imagePrint(imageHandler.image);
 
 
     }
