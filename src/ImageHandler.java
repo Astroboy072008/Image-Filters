@@ -4,6 +4,7 @@ import java.util.Stack;
 public class ImageHandler
 {
     public BufferedImage image;
+    public AsciiImages asciiImages;
 
     private Stack<ImageData> imageHistory;
     private int[] imageARGB;
@@ -34,6 +35,8 @@ public class ImageHandler
 
         imageHistory = new Stack<>();
         imageHistory.add(new ImageData(imageARGB, width, height));
+
+        asciiImages = new AsciiImages(8, 8);
     }
 
     public void undo()
@@ -81,6 +84,7 @@ public class ImageHandler
 
         this.width = width;
         this.height = height;
+
         image.setRGB(0, 0, this.width, this.height, imageARGB, 0, this.width);
     }
 
@@ -110,5 +114,25 @@ public class ImageHandler
         imageARGB = ImageEditor.sobel(imageARGB, width, height, color, threshold);
 
         sync(width, height);
+    }
+
+    public void toAsciiImage(boolean sobel, int sobelThreshold, boolean monochrome)
+    {
+        imageARGB = ImageEditor.toText(imageARGB, width, height, asciiImages.width, asciiImages.height, sobel, sobelThreshold, asciiImages, monochrome);
+
+        int floorWidth = (width / asciiImages.width) * asciiImages.width;
+        int floorHeight = (height / asciiImages.height) * asciiImages.height;
+
+        sync(floorWidth, floorHeight);
+    }
+
+    public void toAsciiImage(int downScaleWidthAmount, int downScaleHeightAmount, boolean sobel, int sobelThreshold, boolean monochrome)
+    {
+        imageARGB = ImageEditor.toText(imageARGB, width, height, downScaleWidthAmount, downScaleHeightAmount, sobel, sobelThreshold, asciiImages, monochrome);
+
+        int floorWidth = (width / downScaleWidthAmount) * asciiImages.width;
+        int floorHeight = (height / downScaleHeightAmount) * asciiImages.height;
+
+        sync(floorWidth, floorHeight);
     }
 }

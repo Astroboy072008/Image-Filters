@@ -6,12 +6,13 @@ import java.util.HashMap;
 
 public class AsciiImages
 {
-    HashMap<Character, ImageHandler> ascii;
-    int size;
+    HashMap<Character, int[]> ascii;
+    int width, height;
 
-    AsciiImages(int size)
+    AsciiImages(int width, int height)
     {
-        this.size = size;
+        this.width = width;
+        this.height = height;
         ascii = new HashMap<>();
 
         HashMap<Character, Integer> key = new HashMap<>();
@@ -27,7 +28,7 @@ public class AsciiImages
 
         chars = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz .,:!?@#$%^&*()/\\|-█";
 
-        String filePath = "src\\Ascii_" + size + "x" + size + "\\";
+        String filePath = "src\\Ascii_" + this.width + "x" + this.height + "\\";
         BufferedImage image = null;
 
         try
@@ -54,17 +55,22 @@ public class AsciiImages
                 image = new BufferedImage(8, 8, BufferedImage.TYPE_INT_ARGB);
             }
 
-            ascii.put(chars.charAt(i), new ImageHandler(image));
+            int[] argb = new int[this.width * this.height];
+            image.getRGB(0, 0, this.width, this.height, argb, 0, this.width);
+
+            ascii.put(chars.charAt(i), argb);
         }
     }
 
-    public ImageHandler getAscii(char key)
+    public int[] getAscii(char key)
     {
         return ascii.get(key);
     }
 
-    public int getSize()
+    public int getWidth() {return width;}
+
+    public int getHeight()
     {
-        return size;
+        return height;
     }
 }

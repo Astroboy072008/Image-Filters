@@ -2,80 +2,89 @@ public class ImageEditor
 {
     public static int[] downScale(int[] argb, int width, int height, int widthA, int heightA)
     {
-        int[] tempPixels = new int[width / widthA * height / heightA];
-        int total = widthA * heightA;
-        int a, r, g, b;
-        int color;
-
-        for (int x = 0; x < width / widthA; x++)
+        if(widthA > 1 || heightA > 1)
         {
-            for (int y = 0; y < height / heightA; y++)
+            int[] tempPixels = new int[width * height];
+            int total = widthA * heightA;
+            int a, r, g, b;
+
+            for (int x = 0; x < width / widthA; x++)
             {
-                a = 0; r = 0; g = 0; b = 0;
-
-                for (int i = x * widthA; i < x * widthA + widthA; i++)
+                for (int y = 0; y < height / heightA; y++)
                 {
-                    for (int j = y * heightA; j < y * heightA + heightA; j++)
+                    a = 0;
+                    r = 0;
+                    g = 0;
+                    b = 0;
+
+                    for (int i = x * widthA; i < x * widthA + widthA; i++)
                     {
-                        color = argb[width * y + x];
+                        for (int j = y * heightA; j < y * heightA + heightA; j++)
+                        {
+                            int index = width * j + i;
+                            int value = argb[index];
 
-                        a += color >> 24 & 0xff;
-                        r += color >> 16 & 0xff;
-                        g += color >> 8 & 0xff;
-                        b += color & 0xff;
+                            a += (value >> 24) & 0xff;
+                            r += (value >> 16) & 0xff;
+                            g += (value >> 8) & 0xff;
+                            b += value & 0xff;
+                        }
                     }
-                }
 
-                tempPixels[width / widthA * y + x] = ((a / total) << 24) | ((r / total) << 16) |  ((g / total) << 8) | (b/ total);
+                    tempPixels[width / widthA * y + x] = ((a / total) << 24) | ((r / total) << 16) | ((g / total) << 8) | (b / total);
+                }
             }
+
+            return tempPixels;
         }
 
-        return tempPixels;
+        return argb;
     }
 
     public static int[] upScale(int[] argb, int width, int height, int widthA, int heightA)
     {
-        int[] tempPixels = new int[width * widthA * height * heightA];
-        int index;
-
-        for (int x = 0; x < width; x++)
+        if(widthA > 1 || heightA > 1)
         {
-            for (int y = 0; y < height; y++)
+            int[] tempPixels = new int[width * widthA * height * heightA];
+            int index;
+
+            for (int x = 0; x < width; x++)
             {
-                for (int i = 0; i < widthA; i++)
+                for (int y = 0; y < height; y++)
                 {
-                    for (int j = 0; j < heightA; j++)
+                    for (int i = 0; i < widthA; i++)
                     {
-                        index = (width * widthA) * (y * heightA + j) + (x * widthA + i);
-                        tempPixels[index] = argb[width * y + x];
+                        for (int j = 0; j < heightA; j++)
+                        {
+                            index = (width * widthA) * (y * heightA + j) + (x * widthA + i);
+                            tempPixels[index] = argb[width * y + x];
+                        }
                     }
                 }
             }
+
+            return tempPixels;
         }
 
-        return tempPixels;
+        return argb;
     }
 
 
     public static void greyScale(int[] argb, int width, int height)
     {
-        int a, r, g, b;
-        int index, avg;
-
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                index = width * y + x;
+                int value = argb[width * y + x];
 
-                a = argb[index] >> 24 & 0xff;
-                r = argb[index] >> 16 & 0xff;
-                g = argb[index] >> 8 & 0xff;
-                b = argb[index] & 0xff;
+                int a = (value >> 24) & 0xff;
+                int r = (value >> 16) & 0xff;
+                int g = (value >> 8) & 0xff;
+                int b = value & 0xff;
 
-                avg = (int) (0.299 * r + 0.587 * g + 0.114 * b);
-
-                argb[index] = (a << 24) | (avg << 16) | (avg << 8) | avg;
+                int avg = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+                argb[width * y + x] = (a << 24) | (avg << 16) | (avg << 8) | avg;
             }
         }
     }
@@ -87,75 +96,98 @@ public class ImageEditor
         double[] gAngle = new double[width * height];
         int index;
 
-        int[] gX = {-1, 0, 1,
-                    -2, 0, 2,
-                    -1, 0, 1};
+        int[] gA = {-1, 0, 1};
+        int[] gB = {-1, -2, -1};
 
-        int[] gY = {-1, -2, -1,
-                     0, 0, 0,
-                     1, 2, 1};
-
-        int[] luminanceKernel = new int[9];
-        int targetX, targetY, value, lGX, lGY, tempG;
+        int[] luminanceKernelX = new int[width * height];
+        int[] luminanceKernelY = new int[width * height];
 
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
+                int lGX = 0;
+                int lGY = 0;
+
                 for (int i = -1; i < 2; i++)
                 {
-                    for (int j = -1; j < 2; j++)
-                    {
-                        index = 3 * (j + 1) + i + 1;
-                        targetX = x + i;
-                        targetY = y + j;
+                    int targetX= x + i;
+                    int value;
 
-                        if(targetX >= 0 && targetX < width && targetY >= 0 && targetY < height)
-                        {
-                            value = argb[width * targetY + targetX];
-                            luminanceKernel[index] = (int)(0.2126 * (value >> 16 & 0xff) + 0.7152 * (value >> 8 & 0xff) + 0.0722 * (value & 0xff));
-                        }
-                        else
-                        {
-                            luminanceKernel[index] = 0;
-                        }
+                    if(targetX >= 0 && targetX < width)
+                    {
+                        value = argb[width * y + targetX];
                     }
+                    else
+                    {
+                        value = argb[width * y + x];
+                    }
+
+                    double luminance = (0.2126 * (value >> 16 & 0xff) + 0.7152 * (value >> 8 & 0xff) + 0.0722 * (value & 0xff));
+                    lGX += (int)(luminance * gA[i + 1]);
+                    lGY += (int)(luminance * gB[i + 1]);
                 }
 
                 index = width * y + x;
-                lGX = 0;
-                lGY = 0;
-                for (int i = 0; i < luminanceKernel.length; i++)
+
+                luminanceKernelX[index] = lGX;
+                luminanceKernelY[index] = lGY;
+            }
+        }
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int lGX = 0;
+                int lGY = 0;
+
+                for (int i = -1; i < 2; i++)
                 {
-                    lGX += gX[i] * luminanceKernel[i];
-                    lGY += gY[i] * luminanceKernel[i];
+                    int targetY= y + i;
+                    int valueX, valueY;
+
+                    if(targetY >= 0 && targetY < height)
+                    {
+                        valueX = luminanceKernelX[width * targetY + x];
+                        valueY = luminanceKernelY[width * targetY + x];
+                    }
+                    else
+                    {
+                        valueX = luminanceKernelX[width * y + x];
+                        valueY = luminanceKernelY[width * y + x];
+                    }
+
+                    lGX += valueX * gB[i + 1];
+                    lGY += valueY * gA[i + 1];
                 }
 
-                tempG = (int)Math.sqrt(lGX * lGX + lGY * lGY);
+                int tempG = (int)Math.sqrt(lGX * lGX + lGY * lGY);
                 if (tempG > 255)
                 {
                     tempG = 255;
                 }
 
+                index = width * y + x;
+
                 gradient[index] = tempG;
                 gAngle[index] = Math.toDegrees(Math.atan2(lGY, lGX)) + 180;
+
             }
         }
 
-        int rgb;
-        int a, r, g, b;
-        double angle;
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
                 index = width * y + x;
-                rgb = gradient[index];
-                angle = gAngle[index];
+                int a, r, g, b;
+                int rgb = gradient[index];
+                double angle = gAngle[index];
 
-                if(color)
+                if(rgb >= threshold)
                 {
-                    if (rgb >= threshold && ((x > 0 && x < width - 1) && (y > 0 && y < height - 1)))
+                    if (color)
                     {
                         if ((angle >= 0 && angle < 6) || (angle >= 175 && angle < 186) || angle >= 355)
                         {
@@ -176,12 +208,12 @@ public class ImageEditor
                     }
                     else
                     {
-                        a = 0; r = rgb; g = rgb; b = rgb;
+                        a = 255; r = rgb; g = rgb; b = rgb;
                     }
                 }
                 else
                 {
-                    a = 255; r = rgb; g = rgb; b = rgb;
+                    a = 0; r = 0; g = 0; b = 0;
                 }
 
                 tempPixels[index] = (a << 24) | (r << 16) | (g << 8) | b;
@@ -197,89 +229,145 @@ public class ImageEditor
 //        printNestedCharArray(makeCharImage(sobel, sobelThreshold));
 //    }
 //
-//    public void toText(Boolean sobel, int sobelThreshold, Boolean monochrome)
-//    {
-//        downScale(8, 8);
-//
-//        BufferedImage ogImage = imageHandler.pixels.getImageCopy();
-//
-//        char[][] charImage = makeCharImage(sobel, sobelThreshold);
-//
-//        imageHandler.pixels.setImage(ogImage);
-//        asciiToImage(monochrome, charImage);
-//    }
-//
-//    private char[][] makeCharImage(Boolean sobel, int sobelThreshold)
-//    {
-//        char[] chars = {' ', '.', ':', 'c', 'o', 'P', 'O', '?', '@', '█'};
-//        char[][] charImage = new char[height][width];
-//
-//        for (int y = 0; y < height; y++)
-//        {
-//            for (int x = 0; x < width; x++)
-//            {
-//                double luminance = imageHandler.pixels.getLuminance(x, y);
-//
-//                luminance = (luminance / 255) * (chars.length - 1);
-//                luminance = Math.round(luminance);
-//
-//                charImage[y][x] = chars[(int)luminance];
-//            }
-//        }
-//
-//        if(sobel) {
+    public static int[] toText(int[] argb, int width, int height, int downScaleWidthAmount, int downScaleHeightAmount, Boolean sobel, int sobelThreshold, AsciiImages asciiImages, Boolean monochrome)
+    {
+        int asciiWidth = asciiImages.width;
+        int asciiHeight = asciiImages.height;
+
+        argb = downScale(argb, width, height, downScaleWidthAmount, downScaleHeightAmount);
+        width /= downScaleWidthAmount;
+        height /= downScaleHeightAmount;
+
+        char[] chars = {' ', '.', ':', 'c', 'o', 'P', 'O', '?', '@', '█'};
+        char[] charImage = new char[width * height];
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int value = argb[width * y + x];
+                double luminance = (0.2126 * (value >> 16 & 0xff) + 0.7152 * (value >> 8 & 0xff) + 0.0722 * (value & 0xff));
+//                System.out.println(luminance);
+
+                luminance = (luminance / 255) * (chars.length - 1);
+                luminance = Math.round(luminance);
+
+                charImage[width * y + x] = chars[(int)luminance];
+            }
+        }
+
+        if(sobel)
+        {
+            int[] edgePixels;
+
 //            differenceOfGaussians(8, .5, 2, 5, 0, 85);
-//            sobel(true, sobelThreshold);
-//
-//            char[] sobelChars = {'-', '|', '/', '\\'};
-//
-//            for (int y = 0; y < height; y++)
+            edgePixels = sobel(argb, width, height, true, sobelThreshold);
+
+            char[] sobelChars = {'-', '|', '/', '\\'};
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    int value = edgePixels[width * y + x];
+
+                    int a = (value >> 24) & 0xff;
+                    int r = (value >> 16) & 0xff;
+                    int g = (value >> 8) & 0xff;
+                    int b = value & 0xff;
+
+                    if( a != 0)
+                    {
+                        int index = getSobelIndex(r, g, b);
+
+                        charImage[width * y + x] = sobelChars[index];
+                    }
+                }
+            }
+        }
+
+//        for(int x = 0; x < width; x++)
+//        {
+//            for(int y = 0; y < height; y++)
 //            {
-//                for (int x = 0; x < width; x++)
-//                {
-//                    int a = imageHandler.pixels.getA(x, y);
-//                    int r = imageHandler.pixels.getR(x, y);
-//                    int g = imageHandler.pixels.getG(x, y);
-//                    int b = imageHandler.pixels.getB(x, y);
-//
-//                    if( a != 0)
-//                    {
-//                        int index = getSobelIndex(r, g, b);
-//
-//                        charImage[y][x] = sobelChars[index];
-//                    }
-//                }
+//                System.out.print(charImage[width * y + x]);
 //            }
+//            System.out.println();
 //        }
-//
-//        return charImage;
-//    }
-//
-//    private static int getSobelIndex(int r, int g, int b)
-//    {
-//        int index = -1;
-//
-//        if(r == 255)
-//        {
-//            index = 0;
-//        }
-//
-//        if(g == 255)
-//        {
-//            index = 1;
-//        }
-//
-//        if(b == 255)
-//        {
-//            index = 2;
-//        }
-//
-//        if(r == 255 && b == 255)
-//        {
-//            index = 3;
-//        }
-//        return index;
-//    }
+
+        width *= asciiWidth;
+        height *= asciiHeight;
+
+        int[] tempPixels = new int[width * height];
+
+        for (int x = 0; x < width / asciiWidth; x++)
+        {
+            for (int y = 0; y < height / asciiHeight; y++)
+            {
+                int[] ascii = asciiImages.getAscii(charImage[width / asciiWidth * y + x]);
+                int value = argb[width / asciiWidth * y + x];
+
+                int a = (value >> 24) & 0xff;
+                int r = (value >> 16) & 0xff;
+                int g = (value >> 8) & 0xff;
+                int b = value & 0xff;
+
+                if(monochrome)
+                {
+                    a = 255;
+                    r = 255;
+                    g = 255;
+                    b = 255;
+                }
+
+                for (int i = 0; i < asciiWidth; i++)
+                {
+                    for (int j = 0; j < asciiHeight; j++)
+                    {
+                        int index = width * (y * asciiHeight + j) + (x * asciiHeight + i);
+                        if(index < tempPixels.length)
+                        {
+                            if ((ascii[asciiWidth * j + i] & 0xff) == 255)
+                            {
+                                tempPixels[index] = (a << 24) | (r << 16) | (g << 8) | b;
+                            } else
+                            {
+                                tempPixels[index] = (255 << 24);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return tempPixels;
+    }
+
+
+    private static int getSobelIndex(int r, int g, int b)
+    {
+        int index = -1;
+
+        if(r == 255)
+        {
+            index = 0;
+        }
+
+        if(g == 255)
+        {
+            index = 1;
+        }
+
+        if(b == 255)
+        {
+            index = 2;
+        }
+
+        if(r == 255 && b == 255)
+        {
+            index = 3;
+        }
+        return index;
+    }
 //
 //    private void printNestedCharArray(char[][] array)
 //    {
@@ -297,65 +385,7 @@ public class ImageEditor
 //        }
 //    }
 //
-//    private void asciiToImage(Boolean monochrome, char[][] array)
-//    {
-//        if(asciiImages == null)
-//        {
-//            asciiImages = new AsciiImages(8);
-//        }
 //
-//        width *= 8;
-//        height *= 8;
-//
-//        int[] tempPixels = new int[width * height];
-//
-//        for (int y = 0; y < height / 8; y++)
-//        {
-//            for (int x = 0; x < width / 8; x++)
-//            {
-//                ImageHandler ascii = asciiImages.getAscii(array[y][x]);
-//
-//                int a = imageHandler.pixels.getA(x, y);
-//                int r = imageHandler.pixels.getR(x, y);
-//                int g = imageHandler.pixels.getG(x, y);
-//                int b = imageHandler.pixels.getB(x, y);
-//
-//                if(monochrome)
-//                {
-//                    a = 255;
-//                    r = 255;
-//                    g = 255;
-//                    b = 255;
-//                }
-//
-//                copyImage(ascii.pixels, tempPixels, x * 8, y * 8, a, r, g, b);
-//            }
-//        }
-//
-//        imageHandler.pixels.setARGB(tempPixels, width, height);
-//        imageHandler.pixels.syncImage();
-//        imageHandler.image = imageHandler.pixels.getImage();
-//    }
-//
-//    private void copyImage(Pixels subject, int[] canvas, int x, int y, int a, int r, int g, int b)
-//    {
-//        for (int i = 0; i < subject.width; i++)
-//        {
-//            for (int j = 0; j < subject.height; j++)
-//            {
-//                int index = width * (y + j) + (x + i);
-//
-//                if(subject.getR(i, j) == 255)
-//                {
-//                    canvas[index] = imageHandler.pixels.getIntARGB(a, r, g, b);
-//                }
-//                else
-//                {
-//                    canvas[index] = imageHandler.pixels.getIntARGB(255, 0, 0, 0);
-//                }
-//            }
-//        }
-//    }
 //
 //    public void gaussianBlur(double sigma)
 //    {
