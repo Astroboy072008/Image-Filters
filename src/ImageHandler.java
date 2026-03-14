@@ -104,7 +104,7 @@ public class ImageHandler
 
     public void greyScale()
     {
-        ImageEditor.greyScale(imageARGB, width, height);
+        imageARGB = ImageEditor.greyScale(imageARGB, width, height);
 
         sync(width, height);
     }
@@ -134,5 +134,41 @@ public class ImageHandler
         int floorHeight = (height / downScaleHeightAmount) * asciiImages.height;
 
         sync(floorWidth, floorHeight);
+    }
+
+    public void gaussianBlur(double sigma, int size)
+    {
+        imageARGB = ImageEditor.gaussianBlur(imageARGB, width, height, sigma, size);
+
+        sync(width, height);
+    }
+
+    public void differenceOfGaussians(double sigma, int size, double scale, double threshold)
+    {
+        imageARGB = ImageEditor.differenceOfGaussians(imageARGB, width, height, sigma, size, scale, threshold);
+
+        sync(width, height);
+    }
+
+    public void extendedDifferenceOfGaussians(double sigma, int size, double scale, double strength, double threshold, double function)
+    {
+        imageARGB = ImageEditor.extendedDifferenceOfGaussians(imageARGB, width, height, sigma, size, scale, strength, threshold, function);
+
+        sync(width, height);
+    }
+
+    public void tests()
+    {
+        imageARGB = ImageEditor.extendedDifferenceOfGaussians(imageARGB, width, height, 2, 3, 1.6, 105, 50, 5);
+
+        imageARGB = ImageEditor.sobel(imageARGB, width, height, true, 160);
+
+        imageARGB = ImageEditor.downScaleSobel(imageARGB, width, height, 8, 8);
+
+        imageARGB = ImageEditor.upScale(imageARGB, width / 8, height / 8, 8, 8);
+
+        sync(width / 8 * 8, height / 8 * 8);
+
+//        sync(width, height);
     }
 }

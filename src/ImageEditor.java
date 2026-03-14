@@ -2,7 +2,7 @@ public class ImageEditor
 {
     public static int[] downScale(int[] argb, int width, int height, int widthA, int heightA)
     {
-        if(widthA > 1 || heightA > 1)
+        if((widthA > 1 || heightA > 1) && (widthA != 0 && heightA != 0))
         {
             int[] tempPixels = new int[width * height];
             int total = widthA * heightA;
@@ -41,9 +41,90 @@ public class ImageEditor
         return argb;
     }
 
+    public static int[] downScaleSobel(int[] argb, int width, int height, int widthA, int heightA)
+    {
+        if((widthA > 1 || heightA > 1) && (widthA != 0 && heightA != 0))
+        {
+            int[] tempPixels = new int[width * height];
+            double total = widthA * heightA * 1.5;
+            int requirement = 7;
+            double a, r, g, b, m;
+
+            for (int x = 0; x < width / widthA; x++)
+            {
+                for (int y = 0; y < height / heightA; y++)
+                {
+                    a = 0; r = 0; g = 0; b = 0; m = 0;
+
+                    for (int i = x * widthA; i < x * widthA + widthA; i++)
+                    {
+                        for (int j = y * heightA; j < y * heightA + heightA; j++)
+                        {
+                            int index = width * j + i;
+                            int value = argb[index];
+
+                            if(((value >> 16) & 0xff) == 255)
+                            {
+                                r += 1.5;
+                            }
+
+                            if(((value >> 8) & 0xff) == 255)
+                            {
+                                g += 1.5;
+                            }
+
+                            if((value & 0xff) == 255)
+                            {
+                                b += 1;
+                            }
+
+                            if(((value >> 16) & 0xff) == 128 && (value & 0xff) == 128)
+                            {
+                                m += 1;
+                            }
+                        }
+                    }
+
+                    if (r + g + b + m > total / requirement)
+                    {
+                        if(r > g && r > b && r > m)
+                        {
+                            a = 255; r = 255; g = 0; b = 0;
+                        }
+
+                        if (g > r && g > b && g > m)
+                        {
+                            a = 255; r = 0; g = 255; b = 0;
+                        }
+
+                        if (b > r && b > g && b > m)
+                        {
+                            a = 255; r = 0; g = 0; b = 255;
+                        }
+
+                        if(m > r && m > g && m > b)
+                        {
+                            a = 255; r = 128; g = 0; b = 128;
+                        }
+                    }
+                    else
+                    {
+                        a = 0; r = 0; g = 0; b = 0;
+                    }
+
+                    tempPixels[width / widthA * y + x] = ((int)(a) << 24) | ((int)(r) << 16) | ((int)(g) << 8) | (int)(b);
+                }
+            }
+
+            return tempPixels;
+        }
+
+        return argb;
+    }
+
     public static int[] upScale(int[] argb, int width, int height, int widthA, int heightA)
     {
-        if(widthA > 1 || heightA > 1)
+        if((widthA > 1 || heightA > 1) && (widthA != 0 && heightA != 0))
         {
             int[] tempPixels = new int[width * widthA * height * heightA];
             int index;
@@ -70,8 +151,10 @@ public class ImageEditor
     }
 
 
-    public static void greyScale(int[] argb, int width, int height)
+    public static int[] greyScale(int[] argb, int width, int height)
     {
+        int[] tempPixels = new int[width * height];
+
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -84,97 +167,24 @@ public class ImageEditor
                 int b = value & 0xff;
 
                 int avg = (int) (0.299 * r + 0.587 * g + 0.114 * b);
-                argb[width * y + x] = (a << 24) | (avg << 16) | (avg << 8) | avg;
+                tempPixels[width * y + x] = (a << 24) | (avg << 16) | (avg << 8) | avg;
             }
         }
+
+        return tempPixels;
     }
 
     public static int[] sobel(int[]argb, int width, int height, Boolean color, int threshold)
     {
+        int index;
         int[] tempPixels = new int[width * height];
         int[] gradient = new int[width * height];
         double[] gAngle = new double[width * height];
-        int index;
 
-        int[] gA = {-1, 0, 1};
-        int[] gB = {-1, -2, -1};
+        double[] lX = new double[width * height];
+        double[] lY = new double[width * height];
 
-        int[] luminanceKernelX = new int[width * height];
-        int[] luminanceKernelY = new int[width * height];
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                int lGX = 0;
-                int lGY = 0;
-
-                for (int i = -1; i < 2; i++)
-                {
-                    int targetX= x + i;
-                    int value;
-
-                    if(targetX >= 0 && targetX < width)
-                    {
-                        value = argb[width * y + targetX];
-                    }
-                    else
-                    {
-                        value = argb[width * y + x];
-                    }
-
-                    double luminance = (0.2126 * (value >> 16 & 0xff) + 0.7152 * (value >> 8 & 0xff) + 0.0722 * (value & 0xff));
-                    lGX += (int)(luminance * gA[i + 1]);
-                    lGY += (int)(luminance * gB[i + 1]);
-                }
-
-                index = width * y + x;
-
-                luminanceKernelX[index] = lGX;
-                luminanceKernelY[index] = lGY;
-            }
-        }
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                int lGX = 0;
-                int lGY = 0;
-
-                for (int i = -1; i < 2; i++)
-                {
-                    int targetY= y + i;
-                    int valueX, valueY;
-
-                    if(targetY >= 0 && targetY < height)
-                    {
-                        valueX = luminanceKernelX[width * targetY + x];
-                        valueY = luminanceKernelY[width * targetY + x];
-                    }
-                    else
-                    {
-                        valueX = luminanceKernelX[width * y + x];
-                        valueY = luminanceKernelY[width * y + x];
-                    }
-
-                    lGX += valueX * gB[i + 1];
-                    lGY += valueY * gA[i + 1];
-                }
-
-                int tempG = (int)Math.sqrt(lGX * lGX + lGY * lGY);
-                if (tempG > 255)
-                {
-                    tempG = 255;
-                }
-
-                index = width * y + x;
-
-                gradient[index] = tempG;
-                gAngle[index] = Math.toDegrees(Math.atan2(lGY, lGX)) + 180;
-
-            }
-        }
+        sobelHelper(argb, width, height, gradient, gAngle, lX, lY);
 
         for (int x = 0; x < width; x++)
         {
@@ -203,7 +213,7 @@ public class ImageEditor
                         }
                         else
                         {
-                            a = 255; r = 255; g = 0; b = 255;
+                            a = 255; r = 128; g = 0; b = 128;
                         }
                     }
                     else
@@ -222,6 +232,91 @@ public class ImageEditor
 
         return tempPixels;
     }
+
+    private static void sobelHelper(int[]argb, int width, int height, int[] gradient, double[] gAngle, double[] lX, double[] lY)
+    {
+        int index;
+        int[] gA = {-1, 0, 1};
+        int[] gB = {-1, -2, -1};
+
+        double[] luminanceKernelX = new double[width * height];
+        double[] luminanceKernelY = new double[width * height];
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                double lGX = 0;
+                double lGY = 0;
+
+                for (int i = -1; i < 2; i++)
+                {
+                    int targetX= x + i;
+                    int value;
+
+                    if(targetX >= 0 && targetX < width)
+                    {
+                        value = argb[width * y + targetX];
+                    }
+                    else
+                    {
+                        value = argb[width * y + x];
+                    }
+
+                    double luminance = (0.2126 * (value >> 16 & 0xff) + 0.7152 * (value >> 8 & 0xff) + 0.0722 * (value & 0xff));
+                    lGX += (luminance * gA[i + 1]);
+                    lGY += (luminance * gB[i + 1]);
+                }
+
+                index = width * y + x;
+
+                luminanceKernelX[index] = lGX;
+                luminanceKernelY[index] = lGY;
+            }
+        }
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                double lGX = 0;
+                double lGY = 0;
+
+                for (int i = -1; i < 2; i++)
+                {
+                    int targetY= y + i;
+                    double valueX, valueY;
+
+                    if(targetY >= 0 && targetY < height)
+                    {
+                        valueX = luminanceKernelX[width * targetY + x];
+                        valueY = luminanceKernelY[width * targetY + x];
+                    }
+                    else
+                    {
+                        valueX = luminanceKernelX[width * y + x];
+                        valueY = luminanceKernelY[width * y + x];
+                    }
+
+                    lGX += valueX * gB[i + 1];
+                    lGY += valueY * gA[i + 1];
+                }
+
+                int tempG = (int)Math.sqrt(lGX * lGX + lGY * lGY);
+                if (tempG > 255)
+                {
+                    tempG = 255;
+                }
+
+                index = width * y + x;
+                lX[index] = lGX;
+                lY[index] = lGY;
+
+                gradient[index] = tempG;
+                gAngle[index] = Math.toDegrees(Math.atan2(lGY, lGX)) + 180;
+            }
+        }
+    }
 //
 //
 //    public void toText(Boolean sobel, int sobelThreshold)
@@ -233,6 +328,15 @@ public class ImageEditor
     {
         int asciiWidth = asciiImages.width;
         int asciiHeight = asciiImages.height;
+
+        int[] edgePixels = new int[0];
+        if(sobel)
+        {
+//            edgePixels = differenceOfGaussians(argb, width, height, .6, 3, 4, 3.5);
+            edgePixels = extendedDifferenceOfGaussians(argb, width, height, 2, 3, 1.6, 105, 50, 5);
+            edgePixels = sobel(edgePixels, width, height, true, sobelThreshold);
+            edgePixels = downScaleSobel(edgePixels, width, height, downScaleWidthAmount, downScaleHeightAmount);
+        }
 
         argb = downScale(argb, width, height, downScaleWidthAmount, downScaleHeightAmount);
         width /= downScaleWidthAmount;
@@ -247,7 +351,6 @@ public class ImageEditor
             {
                 int value = argb[width * y + x];
                 double luminance = (0.2126 * (value >> 16 & 0xff) + 0.7152 * (value >> 8 & 0xff) + 0.0722 * (value & 0xff));
-//                System.out.println(luminance);
 
                 luminance = (luminance / 255) * (chars.length - 1);
                 luminance = Math.round(luminance);
@@ -258,11 +361,6 @@ public class ImageEditor
 
         if(sobel)
         {
-            int[] edgePixels;
-
-//            differenceOfGaussians(8, .5, 2, 5, 0, 85);
-            edgePixels = sobel(argb, width, height, true, sobelThreshold);
-
             char[] sobelChars = {'-', '|', '/', '\\'};
             for (int x = 0; x < width; x++)
             {
@@ -284,15 +382,6 @@ public class ImageEditor
                 }
             }
         }
-
-//        for(int x = 0; x < width; x++)
-//        {
-//            for(int y = 0; y < height; y++)
-//            {
-//                System.out.print(charImage[width * y + x]);
-//            }
-//            System.out.println();
-//        }
 
         width *= asciiWidth;
         height *= asciiHeight;
@@ -362,7 +451,7 @@ public class ImageEditor
             index = 2;
         }
 
-        if(r == 255 && b == 255)
+        if(r == 128 && b == 128)
         {
             index = 3;
         }
@@ -387,188 +476,285 @@ public class ImageEditor
 //
 //
 //
-//    public void gaussianBlur(double sigma)
-//    {
-//        //size is radius * 2 + 1, radius is sigma * 3
-//        int size = (int)(sigma * 5 + 1);
-//        double[][] kernel = makeGaussianKernel(size, sigma);
-//
-//        double[][]rgb = makeGaussianBlur(kernel);
-//
-//        applyGaussianBlur(rgb);
-//        imageHandler.pixels.syncImage();
-//    }
-//
-//    public void gaussianBlur(double sigma, int size)
-//    {
-//        double[][] kernel = makeGaussianKernel(size, sigma);
-//
-//        double[][] rgb = makeGaussianBlur(kernel);
-//
-//        applyGaussianBlur(rgb);
-//        imageHandler.pixels.syncImage();
-//    }
-//
-//    public void gaussianBlur(double[][] kernel)
-//    {
-//        double[][] rgb = makeGaussianBlur(kernel);
-//
-//        applyGaussianBlur(rgb);
-//        imageHandler.pixels.syncImage();
-//    }
-//
-//    private double[][] makeGaussianKernel(int size, double sigma)
-//    {
-//        double[][] kernel = new double[2][size];
-//
-//        int halfSize = size / 2;
-//        for (int i = 0; i < size; i++) {
-//            int x = i - halfSize;
-//            int y = i - halfSize;
-//
-//            double valX = ((x * x) / (2.0 * sigma * sigma)) * -1;
-//            double valY = ((y * y) / (2.0 * sigma * sigma)) * -1;
-//
-//            valX = Math.pow(Math.E, valX);
-//            valY = Math.pow(Math.E, valY);
-//
-//            valX = (1 / (2 * Math.PI * sigma * sigma)) * valX;
-//            valY = (1 / (2 * Math.PI * sigma * sigma)) * valY;
-//
-//            kernel[0][i] = valX;
-//            kernel[1][i] = valY;
-//        }
-//
-//        return kernel;
-//    }
-//
-//    private double[][] makeGaussianBlur(double[][] kernel)
-//    {
-//        int halfSize = kernel[0].length / 2;
-//        int evenSize = 0;
-//        if(kernel[0].length % 2 == 0)
-//        {
-//            evenSize = 1;
-//        }
-//
-//        for (int i = 0; i <kernel.length; i++)
-//        {
-//            double sum = 0;
-//            for (int j = 0; j < kernel[0].length; j++)
-//            {
-//                sum += kernel[i][j];
-//            }
-//            for (int j = 0; j < kernel[0].length; j++)
-//            {
-//                kernel[i][j] /= sum;
-//            }
-//        }
-//
-//        double sumR, sumG, sumB;
-//        double[][] rgbValuesX = new double[3][width * height];
-//
-//        for (int x = 0; x < width; x++)
-//        {
-//            for (int y = 0; y < height; y++)
-//            {
-//                sumR = 0;
-//                sumG = 0;
-//                sumB = 0;
-//
-//                for (int i = -halfSize; i <= halfSize - evenSize; i++)
-//                {
-//                    int targetX = Math.max(0, Math.min(x + i, width - 1));
-//
-//                    sumR += imageHandler.pixels.getR(targetX, y) * kernel[0][i + halfSize];
-//                    sumG += imageHandler.pixels.getG(targetX, y) * kernel[0][i + halfSize];
-//                    sumB += imageHandler.pixels.getB(targetX, y) * kernel[0][i + halfSize];
-//                }
-//
-//                rgbValuesX[0][width * y + x] = sumR;
-//                rgbValuesX[1][width * y + x] = sumG;
-//                rgbValuesX[2][width * y + x] = sumB;
-//            }
-//        }
-//
-//        double[][] rgbValues = new double[3][width * height];
-//
-//        for (int x = 0; x < width; x++)
-//        {
-//            for (int y = 0; y < height; y++)
-//            {
-//                sumR = 0;
-//                sumG = 0;
-//                sumB = 0;
-//
-//                for (int i = -halfSize; i <= halfSize - evenSize; i++)
-//                {
-//                    int targetY = Math.max(0, Math.min(y + i, height - 1));
-//
-//                    sumR += rgbValuesX[0][width * targetY + x] * kernel[1][i + halfSize];
-//                    sumG += rgbValuesX[1][width * targetY + x] * kernel[1][i + halfSize];
-//                    sumB += rgbValuesX[2][width * targetY + x] * kernel[1][i + halfSize];
-//                }
-//
-//                rgbValues[0][width * y + x] = sumR;
-//                rgbValues[1][width * y + x] = sumG;
-//                rgbValues[2][width * y + x] = sumB;
-//            }
-//        }
-//
-//        return rgbValues;
-//    }
-//
-//    private void applyGaussianBlur(double[][] rgbValues)
-//    {
-//        for (int x = 0; x < width; x++)
-//        {
-//            for (int y = 0; y < height; y++)
-//            {
-//                int a = imageHandler.pixels.getA(x, y);
-//                int r = (int) rgbValues[0][width * y + x];
-//                int g = (int) rgbValues[1][width * y + x];
-//                int b = (int) rgbValues[2][width * y + x];
-//
-//                imageHandler.pixels.setARGB(x, y, a, r, g, b);
-//            }
-//        }
-//    }
-//
-//    public void differenceOfGaussians(int size, double sigma, double scale, int strength, int offset, int threshold)
-//    {
-//        greyScale();
-//
-//        if(scale <= 1)
-//        {
-//            scale = 1.1;
-//        }
-//
-//        size = (int)(sigma * 5 + 1);
-//
-//        double[][] kernelA = makeGaussianKernel(size, sigma);
-//
-//        size = (int)(sigma * scale * 5 + 1);
-//        double[][] kernelB = makeGaussianKernel(size, sigma * scale);
-//
-//        double[][] rgbValuesA = makeGaussianBlur(kernelA);
-//        double[][] rgbValuesB = makeGaussianBlur(kernelB);
-//
-//        for (int x = 0; x < width; x++)
-//        {
-//            for (int y = 0; y < height; y++)
-//            {
-//                int a = imageHandler.pixels.getA(x, y);
-//                int rgb = (int)(rgbValuesA[0][width * y + x] - rgbValuesB[0][width * y + x]) * strength + offset;
-//
-//                if(rgb < threshold)
-//                {
-//                    rgb = 0;
-//                }
-//
-//                imageHandler.pixels.setARGB(x, y, a, rgb, rgb, rgb);
-//            }
-//        }
-//
-//        imageHandler.pixels.syncImage();
-//    }
+    public static int[] gaussianBlur(int[]argb, int width, int height, double sigma, int size)
+    {
+        if(size < 2)
+        {
+            size = 2;
+        }
+
+        double[] kernelX = new double[size];
+        double[] kernelY = new double[size];
+
+        makeGaussianKernels(kernelX, kernelY, sigma, size);
+
+        double[] r = new double[width * height];
+        double[] g = new double[width * height];
+        double[] b = new double[width * height];
+
+        makeGaussianBlur(argb, width, height, r, g, b, kernelX, kernelY, size);
+
+        return applyGaussianBlur(argb, width, height, r, g, b);
+    }
+
+    private static void makeGaussianKernels(double[] kernelX, double[] kernelY, double sigma, int size)
+    {
+        int halfSize = size / 2;
+        for (int i = 0; i < size; i++) {
+            int x = i - halfSize;
+            int y = i - halfSize;
+
+            double valX = ((x * x) / (2.0 * sigma * sigma)) * -1;
+            double valY = ((y * y) / (2.0 * sigma * sigma)) * -1;
+
+            valX = Math.pow(Math.E, valX);
+            valY = Math.pow(Math.E, valY);
+
+            valX = (1 / (2 * Math.PI * sigma * sigma)) * valX;
+            valY = (1 / (2 * Math.PI * sigma * sigma)) * valY;
+
+            kernelX[i] = valX;
+            kernelY[i] = valY;
+        }
+    }
+
+
+    private static void makeGaussianBlur(int[] argb, int width, int height, double[] r, double[] g, double[] b, double[] kernelX, double[] kernelY, int size)
+    {
+        int halfSize = size / 2;
+        int evenSize = 0;
+        if(size % 2 == 0)
+        {
+            evenSize = 1;
+        }
+
+        double sumX = 0;
+        double sumY = 0;
+        for (int i = 0; i < size; i++)
+        {
+            sumX += kernelX[i];
+            sumY += kernelY[i];
+        }
+
+        for (int i = 0; i < size; i++)
+        {
+            kernelX[i] /= sumX;
+            kernelY[i] /= sumY;
+        }
+
+        double[] rX = new double[width * height];
+        double[] gX = new double[width * height];
+        double[] bX = new double[width * height];
+        double sumR, sumG, sumB;
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                sumR = 0;
+                sumG = 0;
+                sumB = 0;
+
+                for (int i = -halfSize; i <= halfSize - evenSize; i++)
+                {
+                    int targetX = Math.max(0, Math.min(x + i, width - 1));
+
+                    sumR += ((argb[width * y + targetX] >> 16) & 0xff) * kernelX[i + halfSize];
+                    sumG += ((argb[width * y + targetX] >> 8) & 0xff) * kernelX[i + halfSize];
+                    sumB += (argb[width * y + targetX] & 0xff) * kernelX[i + halfSize];
+                }
+
+                rX[width * y + x] = sumR;
+                gX[width * y + x] = sumG;
+                bX[width * y + x] = sumB;
+            }
+        }
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                sumR = 0;
+                sumG = 0;
+                sumB = 0;
+
+                for (int i = -halfSize; i <= halfSize - evenSize; i++)
+                {
+                    int targetY = Math.max(0, Math.min(y + i, height - 1));
+
+                    sumR += rX[width * targetY + x] * kernelY[i + halfSize];
+                    sumG += gX[width * targetY + x] * kernelY[i + halfSize];
+                    sumB += bX[width * targetY + x] * kernelY[i + halfSize];
+                }
+
+                r[width * y + x] = sumR;
+                g[width * y + x] = sumG;
+                b[width * y + x] = sumB;
+            }
+        }
+    }
+
+    private static int[] applyGaussianBlur(int[] argb, int width, int height, double[] rValues, double[] gValues, double[] bValues)
+    {
+        int[] tempPixels = new int[width * height];
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int index = width * y + x;
+
+                int a = (argb[index] >> 24) & 0xff;
+                int r = Math.max(0, Math.min(255, (int)rValues[width * y + x]));
+                int g = Math.max(0, Math.min(255, (int)gValues[width * y + x]));
+                int b = Math.max(0, Math.min(255, (int)bValues[width * y + x]));
+
+                tempPixels[index] = (a << 24) | (r << 16) | (g << 8) | b;
+            }
+        }
+
+        return tempPixels;
+    }
+
+    public static int[] differenceOfGaussians(int[]argb, int width, int height, double sigma, int size, double scale,  double threshold)
+    {
+        int[] tempPixels = greyScale(argb, width, height);
+
+        if(size < 2)
+        {
+            size = 2;
+        }
+
+        if(scale <= 1)
+        {
+            scale = 1.1;
+        }
+
+        //A
+        double[] kernelAX = new double[size];
+        double[] kernelAY = new double[size];
+        makeGaussianKernels(kernelAX, kernelAY, sigma, size);
+
+        double[] rgbA = new double[width * height];
+        makeGaussianBlur(tempPixels, width, height, rgbA, rgbA, rgbA, kernelAX, kernelAY, size);
+
+        //B
+        size *= 4;
+        double[] kernelBX = new double[size];
+        double[] kernelBY = new double[size];
+        makeGaussianKernels(kernelBX, kernelBY, sigma * scale, size);
+
+        double[] rgbB = new double[width * height];
+        makeGaussianBlur(tempPixels, width, height, rgbB, rgbB, rgbB, kernelBX, kernelBY, size);
+
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int index = width * y + x;
+                int a = (argb[index] >> 24) & 0xff;
+                double rgb = (rgbA[index] - rgbB[index]);
+
+                if(rgb < threshold)
+                {
+                    tempPixels[index] = (a << 24) | (0);
+                }
+                else
+                {
+                    tempPixels[index] = (a << 24) | (255 << 16) | (255 << 8) | 255;
+                }
+            }
+        }
+
+        return tempPixels;
+    }
+
+    public static int[] extendedDifferenceOfGaussians(int[]argb, int width, int height, double sigma, int size, double scale, double strength, double threshold, double slope)
+    {
+        int[] gradient = new int[width * height];
+        double[] gAngle = new double[width * height];
+
+        double[] lX = new double[width * height];
+        double[] lY = new double[width * height];
+        sobelHelper(argb, width, height, gradient, gAngle, lX, lY);
+
+        double[] lXX = new double[width * height];
+        double[] lYY = new double[width * height];
+        double[] lXY = new double[width * height];
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int index = width * y + x;
+
+                lXX[index] = Math.sqrt(lX[index] * lX[index]);
+                lYY[index] = Math.sqrt(lY[index] * lY[index]);
+                lXY[index] = Math.sqrt(lX[index] * lY[index]);
+            }
+        }
+
+        int[] tempPixels = greyScale(argb, width, height);
+
+        if(size < 2)
+        {
+            size = 2;
+        }
+
+        if(scale <= 1)
+        {
+            scale = 1.1;
+        }
+
+        strength /= 100;
+        threshold /= 10;
+        slope /= 10;
+
+        if(strength < 1)
+        {
+            strength = 1;
+        }
+
+        //A
+        double[] kernelAX = new double[size];
+        double[] kernelAY = new double[size];
+        makeGaussianKernels(kernelAX, kernelAY, sigma, size);
+
+        double[] rgbA = new double[width * height];
+        makeGaussianBlur(tempPixels, width, height, rgbA, rgbA, rgbA, kernelAX, kernelAY, size);
+
+        //B
+        size *= 4;
+        double[] kernelBX = new double[size];
+        double[] kernelBY = new double[size];
+        makeGaussianKernels(kernelBX, kernelBY, sigma * scale, size);
+
+        double[] rgbB = new double[width * height];
+        makeGaussianBlur(tempPixels, width, height, rgbB, rgbB, rgbB, kernelBX, kernelBY, size);
+
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int index = width * y + x;
+                int a = (argb[index] >> 24) & 0xff;
+                double rgb = (rgbA[index] - strength * rgbB[index]);
+
+                if(rgb < threshold)
+                {
+                    double coherency = (((lXX[index] - lYY[index]) * (lXX[index] - lYY[index])) + 4 * (lXY[index] * lXY[index])) / ((lXX[index] + lYY[index]) * (lXX[index] + lYY[index]));
+                    int value = (int)(255 * (1 + Math.tanh(slope * coherency * (rgb - threshold))));
+                    tempPixels[index] = (a << 24) | (value << 16) | (value << 8) | value;
+                }
+                else
+                {
+                    tempPixels[index] = (a << 24) | (255 << 16) | (255 << 8) | 255;
+                }
+            }
+        }
+
+        return tempPixels;
+    }
 }

@@ -135,7 +135,9 @@ public class ImageViewer extends JFrame
             {
                 if(imageHandler != null)
                 {
-                    imageHandler.toAsciiImage(3, 3, true, 128, false);
+                    imageHandler.toAsciiImage(1, 1, true, 200, false);
+//                    imageHandler.tests();
+//                    imageHandler.extendedDifferenceOfGaussians(2, 3, 1.6, 105, 50, 5);
                     applyImageFilters(true);
                 }
             }
