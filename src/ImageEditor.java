@@ -184,7 +184,7 @@ public class ImageEditor
         double[] lX = new double[width * height];
         double[] lY = new double[width * height];
 
-        sobelHelper(argb, width, height, gradient, gAngle, lX, lY);
+        sobelHelper(argb, width, height, gradient, gAngle, lX, lY, threshold);
 
         for (int x = 0; x < width; x++)
         {
@@ -195,7 +195,7 @@ public class ImageEditor
                 int rgb = gradient[index];
                 double angle = gAngle[index];
 
-                if(rgb >= threshold)
+                if(rgb == 255)
                 {
                     if (color)
                     {
@@ -233,7 +233,7 @@ public class ImageEditor
         return tempPixels;
     }
 
-    private static void sobelHelper(int[]argb, int width, int height, int[] gradient, double[] gAngle, double[] lX, double[] lY)
+    private static void sobelHelper(int[]argb, int width, int height, int[] gradient, double[] gAngle, double[] lX, double[] lY, int threshold)
     {
         int index;
         int[] gA = {-1, 0, 1};
@@ -303,7 +303,7 @@ public class ImageEditor
                 }
 
                 int tempG = (int)Math.sqrt(lGX * lGX + lGY * lGY);
-                if (tempG > 255)
+                if (tempG >= threshold)
                 {
                     tempG = 255;
                 }
@@ -333,9 +333,10 @@ public class ImageEditor
         if(sobel)
         {
 //            edgePixels = differenceOfGaussians(argb, width, height, .6, 3, 4, 3.5);
-            edgePixels = extendedDifferenceOfGaussians(argb, width, height, 2, 3, 1.6, 105, 50, 5);
-            edgePixels = sobel(edgePixels, width, height, true, sobelThreshold);
-            edgePixels = downScaleSobel(edgePixels, width, height, downScaleWidthAmount, downScaleHeightAmount);
+//            edgePixels = extendedDifferenceOfGaussians(argb, width, height, .5, 2, 1.6, 150, 254, .0025);
+//            edgePixels = downScale(edgePixels, width, height, asciiWidth, asciiHeight);
+//            edgePixels = sobel(argb, width, height, true, sobelThreshold);
+//            edgePixels = downScaleSobel(edgePixels, width, height, downScaleWidthAmount, downScaleHeightAmount);
         }
 
         argb = downScale(argb, width, height, downScaleWidthAmount, downScaleHeightAmount);
@@ -361,6 +362,8 @@ public class ImageEditor
 
         if(sobel)
         {
+            edgePixels = sobel(argb, width, height, true, sobelThreshold);
+
             char[] sobelChars = {'-', '|', '/', '\\'};
             for (int x = 0; x < width; x++)
             {
@@ -483,43 +486,35 @@ public class ImageEditor
             size = 2;
         }
 
-        double[] kernelX = new double[size];
-        double[] kernelY = new double[size];
+        double[] kernel = new double[size];
 
-        makeGaussianKernels(kernelX, kernelY, sigma, size);
+        makeGaussianKernels(kernel, sigma, size);
 
         double[] r = new double[width * height];
         double[] g = new double[width * height];
         double[] b = new double[width * height];
 
-        makeGaussianBlur(argb, width, height, r, g, b, kernelX, kernelY, size);
+        makeGaussianBlur(argb, width, height, r, g, b, kernel, size);
 
         return applyGaussianBlur(argb, width, height, r, g, b);
     }
 
-    private static void makeGaussianKernels(double[] kernelX, double[] kernelY, double sigma, int size)
+    private static void makeGaussianKernels(double[] kernel, double sigma, int size)
     {
         int halfSize = size / 2;
         for (int i = 0; i < size; i++) {
             int x = i - halfSize;
-            int y = i - halfSize;
+            double value = ((x * x) / (2.0 * sigma * sigma)) * -1;
 
-            double valX = ((x * x) / (2.0 * sigma * sigma)) * -1;
-            double valY = ((y * y) / (2.0 * sigma * sigma)) * -1;
+            value = Math.pow(Math.E, value);
+            value = (1 / (2 * Math.PI * sigma * sigma)) * value;
 
-            valX = Math.pow(Math.E, valX);
-            valY = Math.pow(Math.E, valY);
-
-            valX = (1 / (2 * Math.PI * sigma * sigma)) * valX;
-            valY = (1 / (2 * Math.PI * sigma * sigma)) * valY;
-
-            kernelX[i] = valX;
-            kernelY[i] = valY;
+            kernel[i] = value;
         }
     }
 
 
-    private static void makeGaussianBlur(int[] argb, int width, int height, double[] r, double[] g, double[] b, double[] kernelX, double[] kernelY, int size)
+    private static void makeGaussianBlur(int[] argb, int width, int height, double[] r, double[] g, double[] b, double[] kernel, int size)
     {
         int halfSize = size / 2;
         int evenSize = 0;
@@ -528,18 +523,15 @@ public class ImageEditor
             evenSize = 1;
         }
 
-        double sumX = 0;
-        double sumY = 0;
+        double sum = 0;
         for (int i = 0; i < size; i++)
         {
-            sumX += kernelX[i];
-            sumY += kernelY[i];
+            sum += kernel[i];
         }
 
         for (int i = 0; i < size; i++)
         {
-            kernelX[i] /= sumX;
-            kernelY[i] /= sumY;
+            kernel[i] /= sum;
         }
 
         double[] rX = new double[width * height];
@@ -559,9 +551,9 @@ public class ImageEditor
                 {
                     int targetX = Math.max(0, Math.min(x + i, width - 1));
 
-                    sumR += ((argb[width * y + targetX] >> 16) & 0xff) * kernelX[i + halfSize];
-                    sumG += ((argb[width * y + targetX] >> 8) & 0xff) * kernelX[i + halfSize];
-                    sumB += (argb[width * y + targetX] & 0xff) * kernelX[i + halfSize];
+                    sumR += ((argb[width * y + targetX] >> 16) & 0xff) * kernel[i + halfSize];
+                    sumG += ((argb[width * y + targetX] >> 8) & 0xff) * kernel[i + halfSize];
+                    sumB += (argb[width * y + targetX] & 0xff) * kernel[i + halfSize];
                 }
 
                 rX[width * y + x] = sumR;
@@ -582,9 +574,9 @@ public class ImageEditor
                 {
                     int targetY = Math.max(0, Math.min(y + i, height - 1));
 
-                    sumR += rX[width * targetY + x] * kernelY[i + halfSize];
-                    sumG += gX[width * targetY + x] * kernelY[i + halfSize];
-                    sumB += bX[width * targetY + x] * kernelY[i + halfSize];
+                    sumR += rX[width * targetY + x] * kernel[i + halfSize];
+                    sumG += gX[width * targetY + x] * kernel[i + halfSize];
+                    sumB += bX[width * targetY + x] * kernel[i + halfSize];
                 }
 
                 r[width * y + x] = sumR;
@@ -631,22 +623,19 @@ public class ImageEditor
         }
 
         //A
-        double[] kernelAX = new double[size];
-        double[] kernelAY = new double[size];
-        makeGaussianKernels(kernelAX, kernelAY, sigma, size);
+        double[] kernelA = new double[size];
+        makeGaussianKernels(kernelA, sigma, size);
 
         double[] rgbA = new double[width * height];
-        makeGaussianBlur(tempPixels, width, height, rgbA, rgbA, rgbA, kernelAX, kernelAY, size);
+        makeGaussianBlur(tempPixels, width, height, rgbA, rgbA, rgbA, kernelA, size);
 
         //B
         size *= 4;
-        double[] kernelBX = new double[size];
-        double[] kernelBY = new double[size];
-        makeGaussianKernels(kernelBX, kernelBY, sigma * scale, size);
+        double[] kernelB = new double[size];
+        makeGaussianKernels(kernelB, sigma * scale, size);
 
         double[] rgbB = new double[width * height];
-        makeGaussianBlur(tempPixels, width, height, rgbB, rgbB, rgbB, kernelBX, kernelBY, size);
-
+        makeGaussianBlur(tempPixels, width, height, rgbB, rgbB, rgbB, kernelB, size);
 
         for (int x = 0; x < width; x++)
         {
@@ -670,30 +659,11 @@ public class ImageEditor
         return tempPixels;
     }
 
-    public static int[] extendedDifferenceOfGaussians(int[]argb, int width, int height, double sigma, int size, double scale, double strength, double threshold, double slope)
+    public static int[] extendedDifferenceOfGaussians(int[]argb, int width, int height, double sigma, int size, double scale, double tau, double threshold, double phi)
     {
-        int[] gradient = new int[width * height];
-        double[] gAngle = new double[width * height];
-
-        double[] lX = new double[width * height];
-        double[] lY = new double[width * height];
-        sobelHelper(argb, width, height, gradient, gAngle, lX, lY);
-
-        double[] lXX = new double[width * height];
-        double[] lYY = new double[width * height];
-        double[] lXY = new double[width * height];
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                int index = width * y + x;
-
-                lXX[index] = Math.sqrt(lX[index] * lX[index]);
-                lYY[index] = Math.sqrt(lY[index] * lY[index]);
-                lXY[index] = Math.sqrt(lX[index] * lY[index]);
-            }
-        }
+        // increasing tau sharpens edges
+        // threshold determines the white cut-off of pixels
+        // increasing phi sharpens the transition between white to black
 
         int[] tempPixels = greyScale(argb, width, height);
 
@@ -707,31 +677,76 @@ public class ImageEditor
             scale = 1.1;
         }
 
-        strength /= 100;
-        threshold /= 10;
-        slope /= 10;
-
-        if(strength < 1)
-        {
-            strength = 1;
-        }
-
         //A
-        double[] kernelAX = new double[size];
-        double[] kernelAY = new double[size];
-        makeGaussianKernels(kernelAX, kernelAY, sigma, size);
+        double[] kernelA = new double[size];
+        makeGaussianKernels(kernelA, sigma, size);
 
         double[] rgbA = new double[width * height];
-        makeGaussianBlur(tempPixels, width, height, rgbA, rgbA, rgbA, kernelAX, kernelAY, size);
+        makeGaussianBlur(tempPixels, width, height, rgbA, rgbA, rgbA, kernelA, size);
 
         //B
         size *= 4;
-        double[] kernelBX = new double[size];
-        double[] kernelBY = new double[size];
-        makeGaussianKernels(kernelBX, kernelBY, sigma * scale, size);
+        double[] kernelB = new double[size];
+        makeGaussianKernels(kernelB, sigma * scale, size);
 
         double[] rgbB = new double[width * height];
-        makeGaussianBlur(tempPixels, width, height, rgbB, rgbB, rgbB, kernelBX, kernelBY, size);
+        makeGaussianBlur(tempPixels, width, height, rgbB, rgbB, rgbB, kernelB, size);
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int index = width * y + x;
+                int a = (argb[index] >> 24) & 0xff;
+                double rgb = ((1 + tau) * rgbA[index] - tau * rgbB[index]);
+
+                if(rgb < threshold)
+                {
+                    int value = (int)(255 * (1 + Math.tanh(phi * (rgb - threshold))));
+                    tempPixels[index] = (a << 24) | (value << 16) | (value << 8) | value;
+                }
+                else
+                {
+                    tempPixels[index] = (a << 24) | (255 << 16) | (255 << 8) | 255;
+                }
+            }
+        }
+
+        return tempPixels;
+    }
+
+    public static int[] flowBasedExtendedDifferenceOfGaussians(int[]argb, int width, int height, double sigmaC, double sigmaE, double sigmaM, int size, double scale, double tau, double threshold, double phi)
+    {
+        // increasing tau sharpens edges
+        // threshold determines the white cut-off of pixels
+        // increasing phi sharpens the transition between white to black
+
+        int[] tempPixels = greyScale(argb, width, height);
+
+        if(size < 2)
+        {
+            size = 2;
+        }
+
+        if(scale <= 1)
+        {
+            scale = 1.1;
+        }
+
+        //A
+        double[] kernelA = new double[size];
+        makeGaussianKernels(kernelA, sigmaC, size);
+
+        double[] rgbA = new double[width * height];
+        makeGaussianBlur(tempPixels, width, height, rgbA, rgbA, rgbA, kernelA, size);
+
+        //B
+        size *= 4;
+        double[] kernelB = new double[size];
+        makeGaussianKernels(kernelB, sigmaC * scale, size);
+
+        double[] rgbB = new double[width * height];
+        makeGaussianBlur(tempPixels, width, height, rgbB, rgbB, rgbB, kernelB, size);
 
 
         for (int x = 0; x < width; x++)
@@ -740,12 +755,11 @@ public class ImageEditor
             {
                 int index = width * y + x;
                 int a = (argb[index] >> 24) & 0xff;
-                double rgb = (rgbA[index] - strength * rgbB[index]);
+                double rgb = ((1 + tau) * rgbA[index] - tau * rgbB[index]);
 
                 if(rgb < threshold)
                 {
-                    double coherency = (((lXX[index] - lYY[index]) * (lXX[index] - lYY[index])) + 4 * (lXY[index] * lXY[index])) / ((lXX[index] + lYY[index]) * (lXX[index] + lYY[index]));
-                    int value = (int)(255 * (1 + Math.tanh(slope * coherency * (rgb - threshold))));
+                    int value = (int)(255 * (1 + Math.tanh(phi * (rgb - threshold))));
                     tempPixels[index] = (a << 24) | (value << 16) | (value << 8) | value;
                 }
                 else

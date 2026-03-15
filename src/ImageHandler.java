@@ -150,20 +150,26 @@ public class ImageHandler
         sync(width, height);
     }
 
-    public void extendedDifferenceOfGaussians(double sigma, int size, double scale, double strength, double threshold, double function)
+    public void extendedDifferenceOfGaussians(double sigma, int size, double scale, double tau, double threshold, double phi)
     {
-        imageARGB = ImageEditor.extendedDifferenceOfGaussians(imageARGB, width, height, sigma, size, scale, strength, threshold, function);
+        // increasing tau sharpens edges
+        // threshold determines the white cut-off of pixels
+        // increasing phi sharpens the transition between white to black
+
+        imageARGB = ImageEditor.extendedDifferenceOfGaussians(imageARGB, width, height, sigma, size, scale, tau, threshold, phi);
 
         sync(width, height);
     }
 
     public void tests()
     {
-        imageARGB = ImageEditor.extendedDifferenceOfGaussians(imageARGB, width, height, 2, 3, 1.6, 105, 50, 5);
+//        imageARGB = ImageEditor.extendedDifferenceOfGaussians(imageARGB, width, height, 2, 3, 1.6, 105, 50, 5);
 
-        imageARGB = ImageEditor.sobel(imageARGB, width, height, true, 160);
+        imageARGB = ImageEditor.downScale(imageARGB, width, height, 8, 8);
 
-        imageARGB = ImageEditor.downScaleSobel(imageARGB, width, height, 8, 8);
+        imageARGB = ImageEditor.sobel(imageARGB, width / 8, height / 8, true, 200);
+
+//        imageARGB = ImageEditor.downScaleSobel(imageARGB, width, height, 8, 8);
 
         imageARGB = ImageEditor.upScale(imageARGB, width / 8, height / 8, 8, 8);
 
