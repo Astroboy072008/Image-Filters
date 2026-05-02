@@ -332,10 +332,10 @@ public class ImageEditor
         int[] edgePixels = new int[0];
         if(sobel)
         {
-//            edgePixels = differenceOfGaussians(argb, width, height, .6, 3, 4, 3.5);
-//            edgePixels = extendedDifferenceOfGaussians(argb, width, height, .5, 2, 1.6, 150, 254, .0025);
+//            edgePixels = differenceOfGaussians(argb, width, height, .6, 4, 3.5);
+//            edgePixels = extendedDifferenceOfGaussians(argb, width, height, 4.16, 1.6, 120, 160, 1);
 //            edgePixels = downScale(edgePixels, width, height, asciiWidth, asciiHeight);
-//            edgePixels = sobel(argb, width, height, true, sobelThreshold);
+//            edgePixels = sobel(edgePixels, width, height, true, sobelThreshold);
 //            edgePixels = downScaleSobel(edgePixels, width, height, downScaleWidthAmount, downScaleHeightAmount);
         }
 
@@ -362,6 +362,7 @@ public class ImageEditor
 
         if(sobel)
         {
+//            edgePixels = extendedDifferenceOfGaussians(argb, width, height, 4.16, 1.6, 120, 160, 1);
             edgePixels = sobel(argb, width, height, true, sobelThreshold);
 
             char[] sobelChars = {'-', '|', '/', '\\'};
@@ -608,14 +609,9 @@ public class ImageEditor
         return tempPixels;
     }
 
-    public static int[] differenceOfGaussians(int[]argb, int width, int height, double sigma, int size, double scale,  double threshold)
+    public static int[] differenceOfGaussians(int[]argb, int width, int height, double sigma, double scale,  double threshold)
     {
         int[] tempPixels = greyScale(argb, width, height);
-
-        if(size < 2)
-        {
-            size = 2;
-        }
 
         if(scale <= 1)
         {
@@ -623,6 +619,7 @@ public class ImageEditor
         }
 
         //A
+        int size = (int)(2 * Math.ceil(3 * sigma) + 1);
         double[] kernelA = new double[size];
         makeGaussianKernels(kernelA, sigma, size);
 
@@ -630,7 +627,7 @@ public class ImageEditor
         makeGaussianBlur(tempPixels, width, height, rgbA, rgbA, rgbA, kernelA, size);
 
         //B
-        size *= 4;
+        size = (int)(2 * Math.ceil(3 * sigma * scale) + 1);
         double[] kernelB = new double[size];
         makeGaussianKernels(kernelB, sigma * scale, size);
 
@@ -659,7 +656,7 @@ public class ImageEditor
         return tempPixels;
     }
 
-    public static int[] extendedDifferenceOfGaussians(int[]argb, int width, int height, double sigma, int size, double scale, double tau, double threshold, double phi)
+    public static int[] extendedDifferenceOfGaussians(int[]argb, int width, int height, double sigma, double scale, double tau, double threshold, double phi)
     {
         // increasing tau sharpens edges
         // threshold determines the white cut-off of pixels
@@ -667,17 +664,13 @@ public class ImageEditor
 
         int[] tempPixels = greyScale(argb, width, height);
 
-        if(size < 2)
-        {
-            size = 2;
-        }
-
         if(scale <= 1)
         {
             scale = 1.1;
         }
 
         //A
+        int size = (int)(2 * Math.ceil(3 * sigma) + 1);
         double[] kernelA = new double[size];
         makeGaussianKernels(kernelA, sigma, size);
 
@@ -685,7 +678,7 @@ public class ImageEditor
         makeGaussianBlur(tempPixels, width, height, rgbA, rgbA, rgbA, kernelA, size);
 
         //B
-        size *= 4;
+        size = (int)(2 * Math.ceil(3 * sigma * scale) + 1);
         double[] kernelB = new double[size];
         makeGaussianKernels(kernelB, sigma * scale, size);
 
@@ -715,7 +708,7 @@ public class ImageEditor
         return tempPixels;
     }
 
-    public static int[] flowBasedExtendedDifferenceOfGaussians(int[]argb, int width, int height, double sigmaC, double sigmaE, double sigmaM, int size, double scale, double tau, double threshold, double phi)
+    public static int[] flowBasedExtendedDifferenceOfGaussians(int[]argb, int width, int height, double sigmaC, double sigmaE, double sigmaM, double scale, double tau, double threshold, double phi)
     {
         // increasing tau sharpens edges
         // threshold determines the white cut-off of pixels
@@ -723,17 +716,13 @@ public class ImageEditor
 
         int[] tempPixels = greyScale(argb, width, height);
 
-        if(size < 2)
-        {
-            size = 2;
-        }
-
         if(scale <= 1)
         {
             scale = 1.1;
         }
 
         //A
+        int size = (int)(2 * Math.ceil(3 * sigmaC) + 1);
         double[] kernelA = new double[size];
         makeGaussianKernels(kernelA, sigmaC, size);
 
@@ -741,7 +730,7 @@ public class ImageEditor
         makeGaussianBlur(tempPixels, width, height, rgbA, rgbA, rgbA, kernelA, size);
 
         //B
-        size *= 4;
+        size = (int)(2 * Math.ceil(3 * sigmaC * scale) + 1);
         double[] kernelB = new double[size];
         makeGaussianKernels(kernelB, sigmaC * scale, size);
 

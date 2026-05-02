@@ -59,7 +59,7 @@ public class ImageViewer extends JFrame
 
         //Basic Filters Menu
         basicFiltersMenu = new JMenu("Basic Filters");
-        greyScale = new JMenuItem("Greyscale");
+        greyScale = new JMenuItem("To ASCII");
 
         basicFiltersMenu.add(greyScale);
 
@@ -135,11 +135,12 @@ public class ImageViewer extends JFrame
             {
                 if(imageHandler != null)
                 {
-                    imageHandler.toAsciiImage(8, 8, true, 250, true);
+//                    imageHandler.greyScale();
+                    imageHandler.toAsciiImage(8, 8, true, 200, false);
 //                    imageHandler.tests();
-//                    imageHandler.extendedDifferenceOfGaussians(.5, 2, 1.6, 150, 254, .0025);
+//                    imageHandler.extendedDifferenceOfGaussians(4.16, 1.6, 120, 160, 1);
 //                    imageHandler.downScale(8, 8);
-//                    imageHandler.sobel(true, 200);
+//                    imageHandler.sobel(false, 200);
 //                    imageHandler.upScale(8, 8);
                     applyImageFilters(true);
                 }

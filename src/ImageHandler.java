@@ -143,29 +143,31 @@ public class ImageHandler
         sync(width, height);
     }
 
-    public void differenceOfGaussians(double sigma, int size, double scale, double threshold)
+    public void differenceOfGaussians(double sigma, double scale, double threshold)
     {
-        imageARGB = ImageEditor.differenceOfGaussians(imageARGB, width, height, sigma, size, scale, threshold);
+        imageARGB = ImageEditor.differenceOfGaussians(imageARGB, width, height, sigma, scale, threshold);
 
         sync(width, height);
     }
 
-    public void extendedDifferenceOfGaussians(double sigma, int size, double scale, double tau, double threshold, double phi)
+    public void extendedDifferenceOfGaussians(double sigma, double scale, double tau, double threshold, double phi)
     {
         // increasing tau sharpens edges
         // threshold determines the white cut-off of pixels
         // increasing phi sharpens the transition between white to black
 
-        imageARGB = ImageEditor.extendedDifferenceOfGaussians(imageARGB, width, height, sigma, size, scale, tau, threshold, phi);
+        imageARGB = ImageEditor.extendedDifferenceOfGaussians(imageARGB, width, height, sigma, scale, tau, threshold, phi);
 
         sync(width, height);
     }
 
     public void tests()
     {
-//        imageARGB = ImageEditor.extendedDifferenceOfGaussians(imageARGB, width, height, 2, 3, 1.6, 105, 50, 5);
+
 
         imageARGB = ImageEditor.downScale(imageARGB, width, height, 8, 8);
+
+        imageARGB = ImageEditor.extendedDifferenceOfGaussians(imageARGB, width / 8, height / 8, 4.16, 1.6, 120, 160, 1);
 
         imageARGB = ImageEditor.sobel(imageARGB, width / 8, height / 8, true, 200);
 
