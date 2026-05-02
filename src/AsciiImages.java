@@ -28,7 +28,7 @@ public class AsciiImages
 
         chars = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz .,:!?@#$%^&*()/\\|-█";
 
-        String filePath = "src\\Ascii_" + this.width + "x" + this.height + "\\";
+        String filePath = "Ascii_" + this.width + "x" + this.height + "\\";
         BufferedImage image = null;
 
         try
