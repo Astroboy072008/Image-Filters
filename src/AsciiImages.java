@@ -38,8 +38,17 @@ public class AsciiImages
         }
         catch (IOException e)
         {
-            System.out.println("Could NOT FIND ASCII IMAGES");
-            throw new RuntimeException(e);
+            try
+            {
+                filePath = "src\\Ascii_" + this.width + "x" + this.height + "\\";
+                File file = new File(filePath + "test.png");
+                image = ImageIO.read(file);
+            }
+            catch (IOException e1)
+            {
+                System.out.println("Could NOT FIND ASCII IMAGES");
+                throw new RuntimeException(e1);
+            }
         }
 
         for (int i = 0; i < chars.length(); i++)
