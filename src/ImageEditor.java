@@ -1,3 +1,6 @@
+import java.util.Arrays;
+import java.util.HashMap;
+
 public class ImageEditor
 {
     public static int[] downScale(int[] argb, int width, int height, int widthA, int heightA)
@@ -707,57 +710,52 @@ public class ImageEditor
 
         return tempPixels;
     }
-
-    public static int[] flowBasedExtendedDifferenceOfGaussians(int[]argb, int width, int height, double sigmaC, double sigmaE, double sigmaM, double scale, double tau, double threshold, double phi)
+    
+    public static int[] pixelSort(int[] argb, int width, int height, boolean vertical)
     {
-        // increasing tau sharpens edges
-        // threshold determines the white cut-off of pixels
-        // increasing phi sharpens the transition between white to black
+        int[] tempPixels = new int[width * height];
 
-        int[] tempPixels = greyScale(argb, width, height);
+        if(vertical) {
+            for (int x = 0; x < width; x++) {
+                double[] luminanceVals = new double[height];
+                HashMap<Double, Integer> key = new HashMap<>();
 
-        if(scale <= 1)
-        {
-            scale = 1.1;
-        }
+                for (int y = 0; y < height; y++) {
+                    int value = argb[width * y + x];
+                    double luminance = (0.2126 * (value >> 16 & 0xff) + 0.7152 * (value >> 8 & 0xff) + 0.0722 * (value & 0xff));
 
-        //A
-        int size = (int)(2 * Math.ceil(3 * sigmaC) + 1);
-        double[] kernelA = new double[size];
-        makeGaussianKernels(kernelA, sigmaC, size);
-
-        double[] rgbA = new double[width * height];
-        makeGaussianBlur(tempPixels, width, height, rgbA, rgbA, rgbA, kernelA, size);
-
-        //B
-        size = (int)(2 * Math.ceil(3 * sigmaC * scale) + 1);
-        double[] kernelB = new double[size];
-        makeGaussianKernels(kernelB, sigmaC * scale, size);
-
-        double[] rgbB = new double[width * height];
-        makeGaussianBlur(tempPixels, width, height, rgbB, rgbB, rgbB, kernelB, size);
-
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                int index = width * y + x;
-                int a = (argb[index] >> 24) & 0xff;
-                double rgb = ((1 + tau) * rgbA[index] - tau * rgbB[index]);
-
-                if(rgb < threshold)
-                {
-                    int value = (int)(255 * (1 + Math.tanh(phi * (rgb - threshold))));
-                    tempPixels[index] = (a << 24) | (value << 16) | (value << 8) | value;
+                    luminanceVals[y] = luminance;
+                    key.put(luminance, width * y + x);
                 }
-                else
-                {
-                    tempPixels[index] = (a << 24) | (255 << 16) | (255 << 8) | 255;
+
+                Arrays.sort(luminanceVals);
+
+                for (int i = 0; i < luminanceVals.length; i++) {
+                    tempPixels[width * i + x] = argb[key.get(luminanceVals[i])];
                 }
             }
         }
+        else {
+            for (int y = 0; y < height; y++) {
+                double[] luminanceVals = new double[width];
+                HashMap<Double, Integer> key = new HashMap<>();
 
+                for (int x = 0; x < width; x++) {
+                    int value = argb[width * y + x];
+                    double luminance = (0.2126 * (value >> 16 & 0xff) + 0.7152 * (value >> 8 & 0xff) + 0.0722 * (value & 0xff));
+
+                    luminanceVals[x] = luminance;
+                    key.put(luminance, width * y + x);
+                }
+
+                Arrays.sort(luminanceVals);
+
+                for (int i = 0; i < luminanceVals.length; i++) {
+                    tempPixels[width * y + i] = argb[key.get(luminanceVals[i])];
+                }
+            }
+        }
+        
         return tempPixels;
     }
 }

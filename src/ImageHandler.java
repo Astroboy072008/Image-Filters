@@ -161,6 +161,13 @@ public class ImageHandler
         sync(width, height);
     }
 
+    public void pixelSort()
+    {
+        imageARGB = ImageEditor.pixelSort(imageARGB, width, height, true);
+
+        sync(width, height);
+    }
+
     public void tests()
     {
 
