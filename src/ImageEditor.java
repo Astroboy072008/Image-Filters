@@ -712,7 +712,7 @@ public class ImageEditor
         return tempPixels;
     }
     
-    public static int[] pixelSort(int[] argb, int width, int height, boolean vertical, int maskMin, int maskMax)
+    public static int[] pixelSort(int[] argb, int width, int height, boolean vertical, boolean inverse, int maskMin, int maskMax)
     {
         int[] tempPixels = new int[width * height];
 
@@ -741,7 +741,12 @@ public class ImageEditor
 
                 luminanceVals.sort(null);
                 for (int i = 0; i < mask.size(); i++) {
-                    tempPixels[width * mask.get(i) + x] = argb[key.get(luminanceVals.get(i))];
+                    if(inverse) {
+                        tempPixels[width * mask.get(mask.size() - (1 + i)) + x] = argb[key.get(luminanceVals.get(i))];
+                    }
+                    else {
+                        tempPixels[width * mask.get(i) + x] = argb[key.get(luminanceVals.get(i))];
+                    }
                 }
             }
         }
@@ -770,7 +775,12 @@ public class ImageEditor
 
                 luminanceVals.sort(null);
                 for (int i = 0; i < mask.size(); i++) {
-                    tempPixels[width * y + mask.get(i)] = argb[key.get(luminanceVals.get(i))];
+                    if(inverse) {
+                        tempPixels[width * y + mask.get(mask.size() - (1 + i))] = argb[key.get(luminanceVals.get(i))];
+                    }
+                    else {
+                        tempPixels[width * y + mask.get(i)] = argb[key.get(luminanceVals.get(i))];
+                    }
                 }
             }
         }
