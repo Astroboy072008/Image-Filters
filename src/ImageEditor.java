@@ -428,7 +428,7 @@ public class ImageEditor
                                 tempPixels[index] = (a << 24) | (r << 16) | (g << 8) | b;
                             } else
                             {
-                                tempPixels[index] = (255 << 24);
+                                tempPixels[index] = 0;
                             }
                         }
                     }
