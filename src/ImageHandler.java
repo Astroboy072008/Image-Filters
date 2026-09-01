@@ -161,9 +161,9 @@ public class ImageHandler
         sync(width, height);
     }
 
-    public void pixelSort()
+    public void pixelSort(boolean vertical, int maskMin, int maskMax)
     {
-        imageARGB = ImageEditor.pixelSort(imageARGB, width, height, true);
+        imageARGB = ImageEditor.pixelSort(imageARGB, width, height, vertical, maskMin, maskMax);
 
         sync(width, height);
     }

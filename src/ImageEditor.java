@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -711,47 +712,65 @@ public class ImageEditor
         return tempPixels;
     }
     
-    public static int[] pixelSort(int[] argb, int width, int height, boolean vertical)
+    public static int[] pixelSort(int[] argb, int width, int height, boolean vertical, int maskMin, int maskMax)
     {
         int[] tempPixels = new int[width * height];
 
         if(vertical) {
             for (int x = 0; x < width; x++) {
-                double[] luminanceVals = new double[height];
+                ArrayList<Integer> mask = new ArrayList<>();
+
+                ArrayList<Double> luminanceVals = new ArrayList<>();
                 HashMap<Double, Integer> key = new HashMap<>();
 
                 for (int y = 0; y < height; y++) {
                     int value = argb[width * y + x];
                     double luminance = (0.2126 * (value >> 16 & 0xff) + 0.7152 * (value >> 8 & 0xff) + 0.0722 * (value & 0xff));
 
-                    luminanceVals[y] = luminance;
-                    key.put(luminance, width * y + x);
+                    if(luminance >= maskMin && luminance <= maskMax) {
+                        mask.add(y);
+
+                        luminanceVals.add(luminance);
+                        key.put(luminance, width * y + x);
+                    }
+                    else
+                    {
+                        tempPixels[width * y + x] = value;
+                    }
                 }
 
-                Arrays.sort(luminanceVals);
-
-                for (int i = 0; i < luminanceVals.length; i++) {
-                    tempPixels[width * i + x] = argb[key.get(luminanceVals[i])];
+                luminanceVals.sort(null);
+                for (int i = 0; i < mask.size(); i++) {
+                    tempPixels[width * mask.get(i) + x] = argb[key.get(luminanceVals.get(i))];
                 }
             }
         }
         else {
             for (int y = 0; y < height; y++) {
-                double[] luminanceVals = new double[width];
+                ArrayList<Integer> mask = new ArrayList<>();
+
+                ArrayList<Double> luminanceVals = new ArrayList<>();
                 HashMap<Double, Integer> key = new HashMap<>();
 
                 for (int x = 0; x < width; x++) {
                     int value = argb[width * y + x];
                     double luminance = (0.2126 * (value >> 16 & 0xff) + 0.7152 * (value >> 8 & 0xff) + 0.0722 * (value & 0xff));
 
-                    luminanceVals[x] = luminance;
-                    key.put(luminance, width * y + x);
+                    if(luminance >= maskMin && luminance <= maskMax) {
+                        mask.add(x);
+
+                        luminanceVals.add(luminance);
+                        key.put(luminance, width * y + x);
+                    }
+                    else
+                    {
+                        tempPixels[width * y + x] = value;
+                    }
                 }
 
-                Arrays.sort(luminanceVals);
-
-                for (int i = 0; i < luminanceVals.length; i++) {
-                    tempPixels[width * y + i] = argb[key.get(luminanceVals[i])];
+                luminanceVals.sort(null);
+                for (int i = 0; i < mask.size(); i++) {
+                    tempPixels[width * y + mask.get(i)] = argb[key.get(luminanceVals.get(i))];
                 }
             }
         }
