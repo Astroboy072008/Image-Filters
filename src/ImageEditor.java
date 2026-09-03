@@ -170,7 +170,7 @@ public class ImageEditor
                 int g = (value >> 8) & 0xff;
                 int b = value & 0xff;
 
-                int avg = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+                int avg = (int) (0.2161 * r + 0.7152 * g + 0.0722 * b);
                 tempPixels[width * y + x] = (a << 24) | (avg << 16) | (avg << 8) | avg;
             }
         }
