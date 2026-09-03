@@ -143,7 +143,8 @@ public class ImageViewer extends JFrame
 //                    imageHandler.sobel(false, 200);
 //                    imageHandler.upScale(8, 8);
                     //imageHandler.pixelSort(true, true, 64, 256);
-                    imageHandler.idk();
+                    //imageHandler.idk();
+                    imageHandler.chromaticAberration(50, -50, -50, 0, -15, -25);
                     applyImageFilters(true);
                 }
             }

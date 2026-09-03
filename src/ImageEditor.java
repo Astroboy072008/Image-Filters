@@ -801,14 +801,29 @@ public class ImageEditor
                 int g1 = argb[width * y + x] >> 8 & 0xff;
                 int b1 = argb[width * y + x] & 0xff;
 
-                for(int i = 1; i < r1; i++)
+                int offset = 0;
+
+                if((r1 > g1 && g1 > b1) || (r1 > b1 && b1 > g1))
+                {
+                    offset = r1;
+                }
+                else if(g1 > b1 && g1 > r1)
+                {
+                    offset = g1;
+                }
+                else
+                {
+                    offset = b1;
+                }
+
+                for(int i = 1; i < offset; i++)
                 {
                     int x1 = (x + i) % width;
 
-                    int a2 = argb[width * y + x1] >> 24 & 0xff;
-                    int r2 = argb[width * y + x1] >> 16 & 0xff;
-                    int g2 = argb[width * y + x1] >> 8 & 0xff;
-                    int b2 = argb[width * y + x1] & 0xff;
+                    int a2 = tempPixels[width * y + x1] >> 24 & 0xff;
+                    int r2 = tempPixels[width * y + x1] >> 16 & 0xff;
+                    int g2 = tempPixels[width * y + x1] >> 8 & 0xff;
+                    int b2 = tempPixels[width * y + x1] & 0xff;
 
                     tempPixels[width * y + x1] = (a2 << 24) | ((r2 + 1) % 256 << 16) | ((g2 + 1) % 256 << 8) | (b2 + 1) % 256;
                 }
@@ -822,5 +837,59 @@ public class ImageEditor
         }
 
         return tempPixels;
+    }
+
+    public static int[] chromaticAberration(int[] argb, int width, int height, int rOffsetX, int rOffsetY, int gOffsetX, int gOffsetY, int bOffsetX, int bOffsetY)
+    {
+        int[] tempPixels = new int[width * height];
+        int[] aValues = new int[width * height];
+        int[] rValues = new int[width * height];
+        int[] gValues = new int[width * height];
+        int[] bValues = new int[width * height];
+
+        for(int x = 0; x < width; x++)
+        {
+
+            for(int y = 0; y < height; y++)
+            {
+                int a = argb[width * y + x] >> 24 & 0xff;
+                int r = argb[width * y + x] >> 16 & 0xff;
+                int g = argb[width * y + x] >> 8 & 0xff;
+                int b = argb[width * y + x] & 0xff;
+
+                aValues[width * y + x] = a;
+                rValues[width * y + x] = r;
+                gValues[width * y + x] = g;
+                bValues[width * y + x] = b;
+            }
+
+        }
+
+        for(int x = 0; x < width; x++)
+        {
+
+            for(int y = 0; y < height; y++)
+            {
+                int a = aValues[width * y + x];
+                int r = rValues[width * moduloLoop((y + rOffsetY), height) + moduloLoop((x + rOffsetX), width)];
+                int g = gValues[width * moduloLoop((y + gOffsetY), height) + moduloLoop((x + gOffsetX), width)];
+                int b = bValues[width * moduloLoop((y + bOffsetY), height) + moduloLoop((x + bOffsetX), width)];
+
+                tempPixels[width * y + x] = (a << 24) | (r << 16) | (g << 8) | b;
+            }
+
+        }
+
+        return tempPixels;
+    }
+
+    private static int moduloLoop(int a, int b)
+    {
+        if(a < 0)
+        {
+            a *= -1;
+        }
+
+        return a % b;
     }
 }

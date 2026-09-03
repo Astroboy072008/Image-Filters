@@ -175,6 +175,13 @@ public class ImageHandler
         sync(width, height);
     }
 
+    public void chromaticAberration(int rOffsetX, int rOffsetY, int gOffsetX, int gOffsetY, int bOffsetX, int bOffsetY)
+    {
+        imageARGB = ImageEditor.chromaticAberration(imageARGB, width, height, rOffsetX, rOffsetY, gOffsetX, gOffsetY, bOffsetX, bOffsetY);
+
+        sync(width, height);
+    }
+
     public void tests()
     {
 
