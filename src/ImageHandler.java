@@ -168,6 +168,13 @@ public class ImageHandler
         sync(width, height);
     }
 
+    public void idk()
+    {
+        imageARGB = ImageEditor.idk(imageARGB, width, height);
+
+        sync(width, height);
+    }
+
     public void tests()
     {
 

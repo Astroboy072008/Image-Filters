@@ -787,4 +787,40 @@ public class ImageEditor
         
         return tempPixels;
     }
+
+    public static int[] idk(int[] argb, int width, int height)
+    {
+        int[] tempPixels = new int[width * height];
+
+        for(int x = 0; x < width; x++)
+        {
+            for(int y = 0; y < height; y++)
+            {
+                int a1 = argb[width * y + x] >> 24 & 0xff;
+                int r1 = argb[width * y + x] >> 16 & 0xff;
+                int g1 = argb[width * y + x] >> 8 & 0xff;
+                int b1 = argb[width * y + x] & 0xff;
+
+                for(int i = 1; i < r1; i++)
+                {
+                    int x1 = (x + i) % width;
+
+                    int a2 = argb[width * y + x1] >> 24 & 0xff;
+                    int r2 = argb[width * y + x1] >> 16 & 0xff;
+                    int g2 = argb[width * y + x1] >> 8 & 0xff;
+                    int b2 = argb[width * y + x1] & 0xff;
+
+                    tempPixels[width * y + x1] = (a2 << 24) | ((r2 + 1) % 256 << 16) | ((g2 + 1) % 256 << 8) | (b2 + 1) % 256;
+                }
+
+                int r2 = tempPixels[width * y + x] >> 16 & 0xff;
+                int g2 = tempPixels[width * y + x] >> 8 & 0xff;
+                int b2 = tempPixels[width * y + x] & 0xff;
+
+                tempPixels[width * y + x] = (a1 << 24) | ((r1 + r2) % 256 << 16) | ((g1 + g2) % 256 << 8) | (b1 + b2) % 256;
+            }
+        }
+
+        return tempPixels;
+    }
 }
