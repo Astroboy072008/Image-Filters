@@ -887,11 +887,13 @@ public class ImageEditor
 
     private static int moduloLoop(int a, int b)
     {
+        a %= b;
+
         if(a < 0)
         {
-            a *= -1;
+            a += b;
         }
 
-        return a % b;
+        return a;
     }
 }
