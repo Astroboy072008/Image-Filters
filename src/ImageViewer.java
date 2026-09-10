@@ -13,7 +13,7 @@ public class ImageViewer extends JFrame
     Dimension screenSize;
     JMenuBar menuBar;
     JMenu fileMenu, editMenu, basicFiltersMenu;
-    JMenuItem openItem, saveItem, undoButton, toASCII, corruption;
+    JMenuItem openItem, saveItem, undoButton, toASCII, corruption, testFilter;
     JScrollPane scrollPane;
     JLabel imageLabel;
 
@@ -61,9 +61,11 @@ public class ImageViewer extends JFrame
         basicFiltersMenu = new JMenu("Basic Filters");
         toASCII = new JMenuItem("To ASCII");
         corruption = new JMenuItem("Corrupt");
+        testFilter = new JMenuItem("TEST");
 
         basicFiltersMenu.add(toASCII);
         basicFiltersMenu.add(corruption);
+        basicFiltersMenu.add(testFilter);
 
         //MenuBar Setup
         menuBar = new JMenuBar();
@@ -163,6 +165,15 @@ public class ImageViewer extends JFrame
                 imageHandler.pixelSort(vertical, inverse, maskMin, maskMax);
                 imageHandler.idk();
                 imageHandler.chromaticAberration(-rOffsetX, -rOffsetY, -gOffsetX, -gOffsetY, -bOffsetX, -bOffsetY);
+                applyImageFilters(true);
+            }
+        });
+
+        testFilter.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+
                 applyImageFilters(true);
             }
         });
