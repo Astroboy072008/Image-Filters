@@ -668,6 +668,8 @@ public class ImageEditor
 
         int[] tempPixels = greyScale(argb, width, height);
 
+
+
         if(scale <= 1)
         {
             scale = 1.1;
@@ -695,11 +697,11 @@ public class ImageEditor
             {
                 int index = width * y + x;
                 int a = (argb[index] >> 24) & 0xff;
-                double rgb = ((1 + tau) * rgbA[index] - tau * rgbB[index]);
+                double rgb = ((1 + tau) * rgbA[index] - tau * rgbB[index]) / 255.0;
 
                 if(rgb < threshold)
                 {
-                    int value = (int)(255 * (1 + Math.tanh(phi * (rgb - threshold))));
+                    int value = (int)(255 * (1 + Math.tanh(phi * (rgb - threshold))) / 2);
                     tempPixels[index] = (a << 24) | (value << 16) | (value << 8) | value;
                 }
                 else

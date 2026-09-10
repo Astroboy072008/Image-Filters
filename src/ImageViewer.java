@@ -173,7 +173,7 @@ public class ImageViewer extends JFrame
             @Override
             public void actionPerformed(ActionEvent e)
             {
-
+                imageHandler.extendedDifferenceOfGaussians(4.16, 1.6, 1, .75, 2);
                 applyImageFilters(true);
             }
         });
