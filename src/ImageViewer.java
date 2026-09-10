@@ -13,7 +13,7 @@ public class ImageViewer extends JFrame
     Dimension screenSize;
     JMenuBar menuBar;
     JMenu fileMenu, editMenu, basicFiltersMenu;
-    JMenuItem openItem, saveItem, undoButton, greyScale;
+    JMenuItem openItem, saveItem, undoButton, toASCII, corruption;
     JScrollPane scrollPane;
     JLabel imageLabel;
 
@@ -59,9 +59,11 @@ public class ImageViewer extends JFrame
 
         //Basic Filters Menu
         basicFiltersMenu = new JMenu("Basic Filters");
-        greyScale = new JMenuItem("To ASCII");
+        toASCII = new JMenuItem("To ASCII");
+        corruption = new JMenuItem("Corrupt");
 
-        basicFiltersMenu.add(greyScale);
+        basicFiltersMenu.add(toASCII);
+        basicFiltersMenu.add(corruption);
 
         //MenuBar Setup
         menuBar = new JMenuBar();
@@ -128,25 +130,40 @@ public class ImageViewer extends JFrame
 
     private void setUpBasicFiltersMenuButtons()
     {
-        greyScale.addActionListener(new ActionListener()
+        toASCII.addActionListener(new ActionListener()
         {
             @Override
             public void actionPerformed(ActionEvent e)
             {
                 if(imageHandler != null)
                 {
-//                    imageHandler.greyScale();
-                    //imageHandler.toAsciiImage(8, 8, true, 200, false);
-//                    imageHandler.tests();
-//                    imageHandler.extendedDifferenceOfGaussians(4.16, 1.6, 120, 160, 1);
-//                    imageHandler.downScale(8, 8);
-//                    imageHandler.sobel(false, 200);
-//                    imageHandler.upScale(8, 8);
-                    //imageHandler.pixelSort(true, true, 64, 256);
-                    //imageHandler.idk();
-                    imageHandler.chromaticAberration(50, -50, -50, 0, -15, -25);
+                    imageHandler.toAsciiImage(8, 8, true, 200, false);
                     applyImageFilters(true);
                 }
+            }
+        });
+
+        corruption.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                int rOffsetX = 50;
+                int rOffsetY = -50;
+                int gOffsetX = -50;
+                int gOffsetY = 0;
+                int bOffsetX = -15;
+                int bOffsetY = -25;
+
+                boolean vertical = false;
+                boolean inverse = false;
+                int maskMin = 64;
+                int maskMax = 128;
+
+                imageHandler.chromaticAberration(rOffsetX, rOffsetY, gOffsetX, gOffsetY, bOffsetX, bOffsetY);
+                imageHandler.pixelSort(vertical, inverse, maskMin, maskMax);
+                imageHandler.idk();
+                imageHandler.chromaticAberration(-rOffsetX, -rOffsetY, -gOffsetX, -gOffsetY, -bOffsetX, -bOffsetY);
+                applyImageFilters(true);
             }
         });
     }
