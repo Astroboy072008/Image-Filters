@@ -803,38 +803,44 @@ public class ImageEditor
                 int g1 = argb[width * y + x] >> 8 & 0xff;
                 int b1 = argb[width * y + x] & 0xff;
 
-                int offset = 0;
-
-                if((r1 > g1 && g1 > b1) || (r1 > b1 && b1 > g1))
+                for(int i = 1; i < 256; i++)
                 {
-                    offset = r1;
+                    int x1 = (x - i);
+                    if(x1 < 0)
+                    {
+                        x1 += width;
+                    }
+
+                    int a2 = argb[width * y + x1] >> 24 & 0xff;
+                    int r2 = argb[width * y + x1] >> 16 & 0xff;
+                    int g2 = argb[width * y + x1] >> 8 & 0xff;
+                    int b2 = argb[width * y + x1] & 0xff;
+
+                    if(r2 >= i || g2 >= i || b2 >= i)
+                    {
+                        r1 += 1;
+                        g1 += 1;
+                        b1 += 1;
+                    }
+
+//                    if(r2 >= i)
+//                    {
+//                        r1 += 1;
+//                    }
+//
+//                    if(g2 >= i)
+//                    {
+//                        g1 += 1;
+//                    }
+//
+//                    if(b2 >= i)
+//                    {
+//                        b1 += 1;
+//                    }
+
                 }
-                else if(g1 > b1 && g1 > r1)
-                {
-                    offset = g1;
-                }
-                else
-                {
-                    offset = b1;
-                }
 
-                for(int i = 1; i < offset; i++)
-                {
-                    int x1 = (x + i) % width;
-
-                    int a2 = tempPixels[width * y + x1] >> 24 & 0xff;
-                    int r2 = tempPixels[width * y + x1] >> 16 & 0xff;
-                    int g2 = tempPixels[width * y + x1] >> 8 & 0xff;
-                    int b2 = tempPixels[width * y + x1] & 0xff;
-
-                    tempPixels[width * y + x1] = (a2 << 24) | ((r2 + 1) % 256 << 16) | ((g2 + 1) % 256 << 8) | (b2 + 1) % 256;
-                }
-
-                int r2 = tempPixels[width * y + x] >> 16 & 0xff;
-                int g2 = tempPixels[width * y + x] >> 8 & 0xff;
-                int b2 = tempPixels[width * y + x] & 0xff;
-
-                tempPixels[width * y + x] = (a1 << 24) | ((r1 + r2) % 256 << 16) | ((g1 + g2) % 256 << 8) | (b1 + b2) % 256;
+                tempPixels[width * y + x] = (a1 << 24) | (r1 % 256 << 16) | (g1 % 256 << 8) | b1 % 256;
             }
         }
 
